@@ -1,10 +1,7 @@
-// import AppKit
 import SwiftUI
 
 @main
 struct DirectoryMenuBarApp: App {
-    // private let passRootURL = getPassRootDir()
-
     var body: some Scene {
         MenuBarExtra("Directory Files", systemImage: "lock.rectangle") {
             DirectoryContentsView()
@@ -15,7 +12,6 @@ struct DirectoryMenuBarApp: App {
 
 private struct DirectoryContentsView: View {
     private let passRootDir = getPassRootDir()
-    // private let directoryURL: URL
     private let gpg: Gpg?
 
     @State private var items: [DirectoryItem] = []
@@ -24,7 +20,6 @@ private struct DirectoryContentsView: View {
     @State private var openErrorMessage: String?
 
     init() {
-        // directoryURL = url
         do {
             gpg = try Gpg()
         } catch {
@@ -35,11 +30,11 @@ private struct DirectoryContentsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
-            Text(
-                "asdfasdf\n**sdsdsdf** `sdsdffds`\n\n\nfsdaasdadfs\nsdsdsd\nsdsdsd\ndffdfd\n213123")
+            if let readme = passRootDir.2 {
+                Text(LocalizedStringKey(readme)).lineLimit(10)
+            }
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    // Text(directoryURL.lastPathComponent)
                     Text(
                         passRootDir.0 == passRootDir.1
                             ? passRootDir.0.lastPathComponent
@@ -80,25 +75,36 @@ private struct DirectoryContentsView: View {
                     description: Text("This directory is empty.")
                 )
             } else {
-                List(items) { item in
-                    Button {
-                        handleItemClick(item)
-                    } label: {
-                        Label(
-                            item.url.lastPathComponent,
-                            systemImage: item.isDirectory ? "folder" : "lock.doc"
-                        )
-                        // .lineLimit(1)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .contentShape(Rectangle())
+                NavigationStack {
+                    List(items) { item in
+
+                        NavigationLink(item.url.lastPathComponent) {
+
+                        // Button {
+                            // handleItemClick(item)
+                        // } label: {
+                            Label(
+                                item.url.lastPathComponent,
+                                systemImage: item.isDirectory ? "folder" : "lock.doc"
+                            )
+                            // .lineLimit(1)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .contentShape(Rectangle())
+                        // }
+                        // .buttonStyle(.plain)
+                        // .padding(10)
+                        // .help(gpgInfo(item.url.path))
+                        // .help(item.url.path)
+
+                            Text("Detail view for \(item)")
+                                .navigationTitle("Friend")
+                                // .navigationBarTitleDisplayMode(.inline)
+                        }
+
                     }
-                    .buttonStyle(.plain)
-                    .padding(10)
-                    // .help(gpgInfo(item.url.path))
-                    .help(item.url.path)
+                    .lineSpacing(12)
+                    .listStyle(.bordered)
                 }
-                .lineSpacing(12)
-                .listStyle(.bordered)
             }
 
             if let openErrorMessage {
@@ -107,8 +113,8 @@ private struct DirectoryContentsView: View {
                     .foregroundStyle(.red)
             }
         }
-        .padding(40)
-        .frame(width: 340, height: 360)
+        .padding()
+        .frame(width: 340, height: 560)
         .onAppear(perform: loadDirectory)
     }
 
@@ -161,7 +167,7 @@ private struct DirectoryItem: Identifiable {
     var id: String { url.path }
 }
 
-private func getPassRootDir() -> (URL, URL) {
+private func getPassRootDir() -> (URL, URL, String?) {
     let configRoot =
         if let xdgConfigHome = ProcessInfo.processInfo.environment["XDG_CONFIG_HOME"],
             xdgConfigHome.hasPrefix("/")
@@ -175,7 +181,11 @@ private func getPassRootDir() -> (URL, URL) {
     let dirURL = configRoot.appendingPathComponent("passui", isDirectory: true)
     let resolvedURL = dirURL.resolvingSymlinksInPath()
     print("Loading password items from", dirURL)
-    return (dirURL, resolvedURL)
+
+    let readme = try? String(
+        contentsOf: resolvedURL.appendingPathComponent("README.md"), encoding: .utf8)
+
+    return (dirURL, resolvedURL, readme)
 }
 
 struct Gpg {
