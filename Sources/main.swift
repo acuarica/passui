@@ -77,33 +77,51 @@ private struct DirectoryContentsView: View {
             } else {
                 NavigationStack {
                     List(items) { item in
-
-                        NavigationLink(item.url.lastPathComponent) {
-
-                        // Button {
-                            // handleItemClick(item)
-                        // } label: {
-                            Label(
-                                item.url.lastPathComponent,
-                                systemImage: item.isDirectory ? "folder" : "lock.doc"
-                            )
-                            // .lineLimit(1)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .contentShape(Rectangle())
-                        // }
-                        // .buttonStyle(.plain)
-                        // .padding(10)
-                        // .help(gpgInfo(item.url.path))
-                        // .help(item.url.path)
-
-                            Text("Detail view for \(item)")
-                                .navigationTitle("Friend")
-                                // .navigationBarTitleDisplayMode(.inline)
+                        NavigationLink(value: item.url) {
+                            HStack {
+                                Label(
+                                    toLabelName(item.url),
+                                    systemImage: item.isDirectory ? "folder" : "lock.doc"
+                                )
+                                .help(item.url.path)
+                                .font(.system(size: 14))
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .padding(8)
                         }
 
+                        // NavigationLink {
+                        //     ColorDetail(color: .mint, text: item.url.lastPathComponent)
+                        // }
+
+                        // Button {
+                        // handleItemClick(item)
+                        // } label: {
+                        // .frame(maxWidth: .infinity, alignment: .leading)
+                        // .contentShape(Rectangle())
+                        // }
+
+                        // Text("Detail view for \(item)")
+                        // .navigationTitle("Friend")
+                        // .navigationBarTitleDisplayMode(.inline)
+                        // }
+
                     }
-                    .lineSpacing(12)
                     .listStyle(.bordered)
+                    .navigationDestination(for: URL.self) { url in
+                        VStack {
+                            Text(url.lastPathComponent)
+                            Divider()
+                            Text(gpgInfo(url.path))
+                            Divider()
+                            Text((try? gpgDecrypt(url.path)) ?? "no")
+                            Spacer()
+                            Text(url.lastPathComponent)
+                        }
+                    }
                 }
             }
 
@@ -114,7 +132,7 @@ private struct DirectoryContentsView: View {
             }
         }
         .padding()
-        .frame(width: 340, height: 560)
+        .frame(width: 380, height: 640)
         .onAppear(perform: loadDirectory)
     }
 
@@ -138,7 +156,7 @@ private struct DirectoryContentsView: View {
                 at: passRootDir.1,
                 includingPropertiesForKeys: [.isDirectoryKey],
                 options: .skipsHiddenFiles
-            )
+            ).filter { url in url.pathExtension == "gpg" || url.pathExtension == "asc" }
             items =
                 try urls
                 .map { url in
@@ -167,6 +185,13 @@ private struct DirectoryItem: Identifiable {
     var id: String { url.path }
 }
 
+private func toLabelName(_ item: URL) -> String {
+    item.deletingPathExtension().deletingPathExtension().lastPathComponent
+        .replacingOccurrences(of: "_", with: " ")
+        .replacingOccurrences(of: "-", with: " ")
+        .capitalized
+}
+
 private func getPassRootDir() -> (URL, URL, String?) {
     let configRoot =
         if let xdgConfigHome = ProcessInfo.processInfo.environment["XDG_CONFIG_HOME"],
@@ -192,8 +217,9 @@ struct Gpg {
     private let gpgPath: String
 
     init() throws {
-        self.gpgPath = try Gpg.getGpgPath()
-        print("GPG path", self.gpgPath)
+        // self.gpgPath = try Gpg.getGpgPath()
+        self.gpgPath = ""
+        // print("GPG path", self.gpgPath)
     }
 
     private static func getGpgPath() throws -> String {
@@ -239,8 +265,9 @@ private func gpgInfo(_ path: String) -> String {
     }
 }
 
-private func gpgDecrypt(_ path: String) throws {
-    let (_, _) = try shell("gpg --decrypt " + path)
+private func gpgDecrypt(_ path: String) async throws -> String {
+    let (out, _) = try shell("gpg --decrypt " + path)
+    return out
 }
 
 private enum CommandError: Error {
