@@ -14,7 +14,7 @@ private struct DirectoryContentsView: View {
     private let passRootDir = getPassRootDir()
     private let gpg: Gpg?
 
-    @State private var items: [DirectoryItem] = []
+    @State private var items: [VaultItem] = []
     @State private var gpgErrorMessage: String?
     @State private var errorMessage: String?
     @State private var openErrorMessage: String?
@@ -78,17 +78,27 @@ private struct DirectoryContentsView: View {
                 NavigationStack {
                     List(items) { item in
                         NavigationLink(value: item.url) {
-                            HStack {
-                                Label(
-                                    toLabelName(item.url),
-                                    systemImage: item.isDirectory ? "folder" : "lock.doc"
-                                )
+                            HStack(alignment: .top) {
+                                Image(systemName: item.isDirectory ? "folder" : "lock.doc")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 24, height: 24)
+                                    .padding(.top, 4)
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(toLabelName(item.url))
+                                        .font(.system(size: 14))
+                                    Text(item.createdAtLabel())
+                                        .foregroundStyle(.secondary)
+                                    Text(item.modifiedAtLabel())
+                                        .foregroundStyle(.secondary)
+                                }
+                                .font(.caption)
                                 .help(item.url.path)
-                                .font(.system(size: 14))
                                 Spacer()
                                 Image(systemName: "chevron.right")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
+                                    .padding(.top, 20)
                             }
                             .padding(8)
                         }
@@ -136,7 +146,7 @@ private struct DirectoryContentsView: View {
         .onAppear(perform: loadDirectory)
     }
 
-    private func handleItemClick(_ item: DirectoryItem) {
+    private func handleItemClick(_ item: VaultItem) {
         // guard NSWorkspace.shared.open(item.url) else {
         //     openErrorMessage = "Couldn't open \(item.url.lastPathComponent)."
         //     return
@@ -152,18 +162,21 @@ private struct DirectoryContentsView: View {
 
     private func loadDirectory() {
         do {
-            let urls = try FileManager.default.contentsOfDirectory(
+            items = try FileManager.default.contentsOfDirectory(
                 at: passRootDir.1,
-                includingPropertiesForKeys: [.isDirectoryKey],
+                includingPropertiesForKeys: [.isDirectoryKey, .creationDateKey, .contentModificationDateKey],
                 options: .skipsHiddenFiles
-            ).filter { url in url.pathExtension == "gpg" || url.pathExtension == "asc" }
-            items =
-                try urls
+            )
+                .filter { url in url.pathExtension == "gpg" || url.pathExtension == "asc" }
                 .map { url in
-                    DirectoryItem(
+                    let values = try url.resourceValues(forKeys: [
+                        .isDirectoryKey, .creationDateKey, .contentModificationDateKey,
+                    ])
+                    return VaultItem(
                         url: url,
-                        isDirectory: try url.resourceValues(forKeys: [.isDirectoryKey]).isDirectory
-                            ?? false
+                        isDirectory: values.isDirectory ?? false,
+                        createdAt: values.creationDate,
+                        modifiedAt: values.contentModificationDate
                     )
                 }
                 .sorted {
@@ -178,11 +191,25 @@ private struct DirectoryContentsView: View {
     }
 }
 
-private struct DirectoryItem: Identifiable {
+private struct VaultItem: Identifiable {
+    var id: String { url.path }
+
     let url: URL
     let isDirectory: Bool
+    let createdAt: Date?
+    let modifiedAt: Date?
 
-    var id: String { url.path }
+    func createdAtLabel() -> String {
+        return "Created: \(VaultItem.formatDate(createdAt))"
+    }
+
+    func modifiedAtLabel() -> String {
+        return "Last Modified: \(VaultItem.formatDate(modifiedAt))"
+    }
+
+    private static func formatDate(_ date: Date?) -> String {
+        return date?.formatted(date: .abbreviated, time: .shortened) ?? "Unavailable"
+    }
 }
 
 private func toLabelName(_ item: URL) -> String {
