@@ -144,7 +144,7 @@ private struct DirectoryContentsView: View {
 
         // openErrorMessage = nil
         do {
-            try gpgDecrypt(item.url.path)
+            let _ = try gpgDecrypt(item.url.path)
         } catch {
             openErrorMessage = "Couldn't open \(item.url.lastPathComponent)."
         }
@@ -265,7 +265,7 @@ private func gpgInfo(_ path: String) -> String {
     }
 }
 
-private func gpgDecrypt(_ path: String) async throws -> String {
+private func gpgDecrypt(_ path: String) throws -> String {
     let (out, _) = try shell("gpg --decrypt " + path)
     return out
 }
