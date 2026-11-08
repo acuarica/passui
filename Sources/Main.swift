@@ -33,9 +33,7 @@ private struct DirectoryContentsView: View {
     var body: some View {
         VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 12) {
-                if let readme = passRootDir.2 {
-                    Markdown(content: readme, fileName: "README.md")
-                }
+                Readme(folder: passRootDir.1)
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(
@@ -164,7 +162,7 @@ private struct DirectoryContentsView: View {
             //     Text("123324")
             // }
         }
-        .frame(width: 380, height: 640)
+        .frame(width: 480, height: 800)
         .onAppear(perform: loadDirectory)
     }
 
@@ -243,7 +241,7 @@ private func toLabelName(_ item: URL) -> String {
         .capitalized
 }
 
-private func getPassRootDir() -> (URL, URL, String?) {
+private func getPassRootDir() -> (URL, URL) {
     let configRoot =
         if let xdgConfigHome = ProcessInfo.processInfo.environment["XDG_CONFIG_HOME"],
             xdgConfigHome.hasPrefix("/")
@@ -258,10 +256,7 @@ private func getPassRootDir() -> (URL, URL, String?) {
     let resolvedURL = dirURL.resolvingSymlinksInPath()
     print("Loading password items from", dirURL)
 
-    let readme = try? String(
-        contentsOf: resolvedURL.appendingPathComponent("README.md"), encoding: .utf8)
-
-    return (dirURL, resolvedURL, readme)
+    return (dirURL, resolvedURL)
 }
 
 struct Gpg {
