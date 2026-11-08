@@ -29,119 +29,125 @@ private struct DirectoryContentsView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            if let readme = passRootDir.2 {
-                Text(LocalizedStringKey(readme)).lineLimit(10)
-            }
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(
-                        passRootDir.0 == passRootDir.1
-                            ? passRootDir.0.lastPathComponent
-                            : "\(passRootDir.0.lastPathComponent) (\(passRootDir.1.lastPathComponent))"
+        VStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 12) {
+                if let readme = passRootDir.2 {
+                    Markdown(content: readme, fileName: "README.md")
+                }
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(
+                            passRootDir.0 == passRootDir.1
+                                ? passRootDir.0.lastPathComponent
+                                : "\(passRootDir.0.lastPathComponent) (\(passRootDir.1.lastPathComponent))"
+                        )
+                        .font(.headline)
+                        .help(passRootDir.1.path)
+                        Text("\(items.count) items")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Button(action: loadDirectory) {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                    .buttonStyle(.borderless)
+                    .help("Refresh")
+                }
+
+                if let gpgErrorMessage {
+                    ContentUnavailableView(
+                        "Couldn't load gpg",
+                        systemImage: "exclamationmark.triangle",
+                        description: Text(gpgErrorMessage)
                     )
-                    .font(.headline)
-                    .help(passRootDir.1.path)
-                    Text("\(items.count) items")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer()
-
-                Button(action: loadDirectory) {
-                    Image(systemName: "arrow.clockwise")
-                }
-                .buttonStyle(.borderless)
-                .help("Refresh")
-            }
-
-            if let gpgErrorMessage {
-                ContentUnavailableView(
-                    "Couldn't load gpg",
-                    systemImage: "exclamationmark.triangle",
-                    description: Text(gpgErrorMessage)
-                )
-            } else if let errorMessage {
-                ContentUnavailableView(
-                    "Couldn't load directory",
-                    systemImage: "exclamationmark.triangle",
-                    description: Text(errorMessage)
-                )
-            } else if items.isEmpty {
-                ContentUnavailableView(
-                    "No items",
-                    systemImage: "folder",
-                    description: Text("This directory is empty.")
-                )
-            } else {
-                NavigationStack {
-                    List(items) { item in
-                        NavigationLink(value: item.url) {
-                            HStack(alignment: .top) {
-                                Image(systemName: item.isDirectory ? "folder" : "lock.doc")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 24, height: 24)
-                                    .padding(.top, 4)
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(toLabelName(item.url))
-                                        .font(.system(size: 14))
-                                    Text(item.createdAtLabel())
-                                        .foregroundStyle(.secondary)
-                                    Text(item.modifiedAtLabel())
-                                        .foregroundStyle(.secondary)
-                                }
-                                .font(.caption)
-                                .help(item.url.path)
-                                Spacer()
-                                Image(systemName: "chevron.right")
+                } else if let errorMessage {
+                    ContentUnavailableView(
+                        "Couldn't load directory",
+                        systemImage: "exclamationmark.triangle",
+                        description: Text(errorMessage)
+                    )
+                } else if items.isEmpty {
+                    ContentUnavailableView(
+                        "No items",
+                        systemImage: "folder",
+                        description: Text("This directory is empty.")
+                    )
+                } else {
+                    NavigationStack {
+                        List(items) { item in
+                            NavigationLink(value: item.url) {
+                                HStack(alignment: .top) {
+                                    Image(systemName: item.isDirectory ? "folder" : "lock.doc")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 24, height: 24)
+                                        .padding(.top, 4)
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(toLabelName(item.url))
+                                            .font(.system(size: 14))
+                                        Text(item.createdAtLabel())
+                                            .foregroundStyle(.secondary)
+                                        Text(item.modifiedAtLabel())
+                                            .foregroundStyle(.secondary)
+                                    }
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                    .padding(.top, 20)
+                                    .help(item.url.path)
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                        .padding(.top, 20)
+                                }
+                                .padding(8)
                             }
-                            .padding(8)
+
+                            // NavigationLink {
+                            //     ColorDetail(color: .mint, text: item.url.lastPathComponent)
+                            // }
+
+                            // Button {
+                            // handleItemClick(item)
+                            // } label: {
+                            // .frame(maxWidth: .infinity, alignment: .leading)
+                            // .contentShape(Rectangle())
+                            // }
+
+                            // Text("Detail view for \(item)")
+                            // .navigationTitle("Friend")
+                            // .navigationBarTitleDisplayMode(.inline)
+                            // }
+
                         }
-
-                        // NavigationLink {
-                        //     ColorDetail(color: .mint, text: item.url.lastPathComponent)
-                        // }
-
-                        // Button {
-                        // handleItemClick(item)
-                        // } label: {
-                        // .frame(maxWidth: .infinity, alignment: .leading)
-                        // .contentShape(Rectangle())
-                        // }
-
-                        // Text("Detail view for \(item)")
-                        // .navigationTitle("Friend")
-                        // .navigationBarTitleDisplayMode(.inline)
-                        // }
-
-                    }
-                    .listStyle(.bordered)
-                    .navigationDestination(for: URL.self) { url in
-                        VStack {
-                            Text(url.lastPathComponent)
-                            Divider()
-                            Text(gpgInfo(url.path))
-                            Divider()
-                            Text((try? gpgDecrypt(url.path)) ?? "no")
-                            Spacer()
-                            Text(url.lastPathComponent)
+                        .listStyle(.bordered)
+                        .navigationDestination(for: URL.self) { url in
+                            VStack {
+                                Text(url.lastPathComponent)
+                                Divider()
+                                Text(gpgInfo(url.path))
+                                Divider()
+                                Text((try? gpgDecrypt(url.path)) ?? "no")
+                                Spacer()
+                                Text(url.lastPathComponent)
+                            }
                         }
                     }
                 }
-            }
 
-            if let openErrorMessage {
-                Text(openErrorMessage)
-                    .font(.caption)
-                    .foregroundStyle(.red)
+                if let openErrorMessage {
+                    Text(openErrorMessage)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
+            }
+            .padding()
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            StatusBar(left: "asdfasdf", right: "sdjksdjk").tooltip {
+                Text("asdfasdf")
+                Text("123324")
+                Text("123324")
             }
         }
-        .padding()
         .frame(width: 380, height: 640)
         .onAppear(perform: loadDirectory)
     }
