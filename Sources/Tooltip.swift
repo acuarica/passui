@@ -42,4 +42,8 @@ extension View {
     func tooltip<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
         self.modifier(Tooltip(content: content))
     }
+
+    func tooltip(_ content: String) -> some View {
+        self.modifier(Tooltip(content: { Text(content) }))
+    }
 }
