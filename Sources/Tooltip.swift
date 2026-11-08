@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// https://blog.rampatra.com/adding-tooltips-to-swiftui-views-on-macos
-struct Tooltip<TTContent: View>: ViewModifier {
+private struct Tooltip<TTContent: View>: ViewModifier {
     @State private var isHovering = false
     let tooltipContent: TTContent
 
@@ -32,7 +32,6 @@ struct Tooltip<TTContent: View>: ViewModifier {
                         .shadow(radius: 3)
                         .offset(y: -40)
                         .transition(.opacity.combined(with: .scale))
-                    // .frame(maxWidth: .infinity)
                 }
             }
     }
@@ -44,6 +43,6 @@ extension View {
     }
 
     func tooltip(_ content: String) -> some View {
-        self.modifier(Tooltip(content: { Text(content) }))
+        self.help(content)
     }
 }

@@ -91,7 +91,7 @@ private struct DirectoryContentsView: View {
                                             .foregroundStyle(.secondary)
                                     }
                                     .font(.caption)
-                                    .help(item.url.path)
+                                    .tooltip(item.url.path)
                                     Spacer()
                                     Image(systemName: "chevron.right")
                                         .font(.caption)
