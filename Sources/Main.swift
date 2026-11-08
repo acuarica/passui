@@ -51,8 +51,11 @@ private struct DirectoryContentsView: View {
                     Button(action: loadDirectory) {
                         Image(systemName: "arrow.clockwise")
                     }
-                    .buttonStyle(.borderless)
-                    .help("Refresh")
+                    // .buttonStyle(.borderless)
+                    // .help("Refresh")
+                    .tooltip { Text("Resdjj")
+                    .frame(maxWidth: .infinity)
+                    }
                 }
 
                 if let gpgErrorMessage {
@@ -142,11 +145,12 @@ private struct DirectoryContentsView: View {
             }
             .padding()
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            StatusBar(left: "asdfasdf", right: "sdjksdjk").tooltip {
-                Text("asdfasdf")
-                Text("123324")
-                Text("123324")
-            }
+            StatusBar(left: "asdfasdf jksdkjsdjksd jksdjksd", right: "sdjksdjk")
+            // .tooltip {
+            //     Text("asdfasdf")
+            //     Text("123324")
+            //     Text("123324")
+            // }
         }
         .frame(width: 380, height: 640)
         .onAppear(perform: loadDirectory)

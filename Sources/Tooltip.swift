@@ -31,6 +31,7 @@ struct Tooltip<TTContent: View>: ViewModifier {
                         .shadow(radius: 3)
                         .offset(y: -40)
                         .transition(.opacity.combined(with: .scale))
+                        // .frame(maxWidth: .infinity)
                 }
             }
     }
