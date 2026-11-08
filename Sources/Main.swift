@@ -51,12 +51,7 @@ private struct DirectoryContentsView: View {
                     Button(action: loadDirectory) {
                         Image(systemName: "arrow.clockwise")
                     }
-                    // .buttonStyle(.borderless)
-                    // .help("Refresh")
-                    .tooltip {
-                        Text("Refresh")
-                        // .fixedSize()
-                    }
+                    .tooltip("Reload Vault Items")
                 }
 
                 if let gpgErrorMessage {
@@ -167,12 +162,6 @@ private struct DirectoryContentsView: View {
     }
 
     private func handleItemClick(_ item: VaultItem) {
-        // guard NSWorkspace.shared.open(item.url) else {
-        //     openErrorMessage = "Couldn't open \(item.url.lastPathComponent)."
-        //     return
-        // }
-
-        // openErrorMessage = nil
         do {
             let _ = try gpgDecrypt(item.url.path)
         } catch {
