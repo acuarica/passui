@@ -7,6 +7,7 @@ struct Readme: View {
             ZStack(alignment: .topTrailing) {
                 ScrollView {
                     Text(LocalizedStringKey(content))
+                        .textSelection(.enabled)
                 }
                 .frame(height: 220)
                 Label(fileName, systemImage: "book")
@@ -18,7 +19,7 @@ struct Readme: View {
                         RoundedRectangle(cornerRadius: 6)
                             .fill(Color.blue.opacity(0.2))
                     )
-                    .help(folder.path)
+                    .tooltip(folder.path)
             }
         }
     }
