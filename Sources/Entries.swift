@@ -101,7 +101,6 @@ struct Entries: View {
             }
         }
         .onAppear(perform: loadDirectory)
-
     }
 
     private func loadDirectory() {
