@@ -2,6 +2,7 @@ import SwiftUI
 
 struct Readme: View {
     let folder: URL
+
     var body: some View {
         if let (fileName, content) = getReadmeContent() {
             ZStack(alignment: .topTrailing) {
