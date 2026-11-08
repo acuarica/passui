@@ -4,12 +4,11 @@ OK="\xE2\x9C\x94"
 ERR="\xE2\xA8\xAF"
 
 for file in $(git diff --cached --name-only --diff-filter=ACMR | grep '\.swift$'); do
-  #echo "> Formatting '$file'..."
   if swift format --in-place $file; then
-    echo "\033[32m$OK Valid format $file \033[0m"
+    echo "\033[2;32m$OK [OK] $file: successfully formatted\033[0m"
     git add $file
   else
-    echo "\033[31m$ERR pre-commit error: formatting $file \033[0m"
+    echo "\033[31m$ERR [ERROR] $file: error while formatting\033[0m" >&2
     exit 2
   fi
 done
@@ -19,6 +18,6 @@ done
 #
 # https://yuri.is/writing/formatting-code-with-a-git-hook/
 if git diff --cached --quiet; then
-    echo "\033[31m$ERR Error: After formatting, there are no longer any files are staged for commit\033[0m" >&2
+    echo "\033[31m$ERR [ERROR] After formatting there are no longer any files staged for commit\033[0m" >&2
     exit 1
 fi
