@@ -4,11 +4,11 @@ import SwiftUI
 struct Tooltip<TTContent: View>: ViewModifier {
     @State private var isHovering = false
     let tooltipContent: TTContent
-    
+
     init(@ViewBuilder content: () -> TTContent) {
         self.tooltipContent = content()
     }
-    
+
     func body(content: Content) -> some View {
         content
             .onHover { hovering in
@@ -19,6 +19,7 @@ struct Tooltip<TTContent: View>: ViewModifier {
             .overlay(alignment: .top) {
                 if isHovering {
                     tooltipContent
+                        .fixedSize()
                         .padding(8)
                         .background(
                             RoundedRectangle(cornerRadius: 6)
@@ -31,7 +32,7 @@ struct Tooltip<TTContent: View>: ViewModifier {
                         .shadow(radius: 3)
                         .offset(y: -40)
                         .transition(.opacity.combined(with: .scale))
-                        // .frame(maxWidth: .infinity)
+                    // .frame(maxWidth: .infinity)
                 }
             }
     }

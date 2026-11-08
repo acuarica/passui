@@ -14,6 +14,8 @@ private struct DirectoryContentsView: View {
     private let passRootDir = getPassRootDir()
     private let gpg: Gpg?
 
+    @State private var searchText: String = ""
+
     @State private var items: [VaultItem] = []
     @State private var gpgErrorMessage: String?
     @State private var errorMessage: String?
@@ -53,8 +55,9 @@ private struct DirectoryContentsView: View {
                     }
                     // .buttonStyle(.borderless)
                     // .help("Refresh")
-                    .tooltip { Text("Resdjj")
-                    .frame(maxWidth: .infinity)
+                    .tooltip {
+                        Text("Refresh")
+                        // .fixedSize()
                     }
                 }
 
@@ -134,6 +137,15 @@ private struct DirectoryContentsView: View {
                                 Text(url.lastPathComponent)
                             }
                         }
+
+                        .navigationTitle("Frameworks")
+                        // .searchable(text: $searchText)
+                        .searchable(
+                            text: $searchText,
+                            placement: .sidebar,
+                            prompt: "Name or Brand"
+                        )
+
                     }
                 }
 
@@ -174,25 +186,27 @@ private struct DirectoryContentsView: View {
         do {
             items = try FileManager.default.contentsOfDirectory(
                 at: passRootDir.1,
-                includingPropertiesForKeys: [.isDirectoryKey, .creationDateKey, .contentModificationDateKey],
+                includingPropertiesForKeys: [
+                    .isDirectoryKey, .creationDateKey, .contentModificationDateKey,
+                ],
                 options: .skipsHiddenFiles
             )
-                .filter { url in url.pathExtension == "gpg" || url.pathExtension == "asc" }
-                .map { url in
-                    let values = try url.resourceValues(forKeys: [
-                        .isDirectoryKey, .creationDateKey, .contentModificationDateKey,
-                    ])
-                    return VaultItem(
-                        url: url,
-                        isDirectory: values.isDirectory ?? false,
-                        createdAt: values.creationDate,
-                        modifiedAt: values.contentModificationDate
-                    )
-                }
-                .sorted {
-                    $0.url.lastPathComponent.localizedStandardCompare($1.url.lastPathComponent)
-                        == .orderedAscending
-                }
+            .filter { url in url.pathExtension == "gpg" || url.pathExtension == "asc" }
+            .map { url in
+                let values = try url.resourceValues(forKeys: [
+                    .isDirectoryKey, .creationDateKey, .contentModificationDateKey,
+                ])
+                return VaultItem(
+                    url: url,
+                    isDirectory: values.isDirectory ?? false,
+                    createdAt: values.creationDate,
+                    modifiedAt: values.contentModificationDate
+                )
+            }
+            .sorted {
+                $0.url.lastPathComponent.localizedStandardCompare($1.url.lastPathComponent)
+                    == .orderedAscending
+            }
             errorMessage = nil
         } catch {
             items = []
