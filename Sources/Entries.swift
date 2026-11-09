@@ -133,9 +133,9 @@ private struct VaultItemView: View {
                                 .fill(Color.cyan.opacity(0.3))
                         )
                 }
-                Text(item.createdAtLabel)
+                Text("Created: \(VaultItemView.formatDate(item.createdAt))")
                     .foregroundStyle(.secondary)
-                Text(item.modifiedAtLabel)
+                Text("Last Modified: \(VaultItemView.formatDate(item.modifiedAt))")
                     .foregroundStyle(.secondary)
             }
             .font(.caption)
@@ -146,6 +146,10 @@ private struct VaultItemView: View {
                 .padding(.top, 20)
         }
         .padding(8)
+    }
+
+    private static func formatDate(_ date: Date?) -> String {
+        return date?.formatted(date: .abbreviated, time: .shortened) ?? "Unavailable"
     }
 }
 
@@ -162,12 +166,5 @@ private struct VaultItem: Identifiable {
             .replacingOccurrences(of: "_", with: " ")
             .replacingOccurrences(of: "-", with: " ")
             .capitalized
-    }
-
-    var createdAtLabel: String { "Created: \(VaultItem.formatDate(createdAt))" }
-    var modifiedAtLabel: String { "Last Modified: \(VaultItem.formatDate(modifiedAt))" }
-
-    private static func formatDate(_ date: Date?) -> String {
-        return date?.formatted(date: .abbreviated, time: .shortened) ?? "Unavailable"
     }
 }
