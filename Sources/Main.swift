@@ -13,22 +13,29 @@ struct MenuBarApp: App {
 private struct ContentsView: View {
     private let passRootDir = getPassRootDir()
 
-    @State private var gpgVersion: String?
+    @State private var gpgVersion: (String, String)?
     @State private var gpgPath: String?
     @State private var gpgPathErrorMessage: String?
 
     var body: some View {
         VStack(spacing: 0) {
-            VStack(alignment: .leading, spacing: 12) {
+            // VStack(alignment: .leading, spacing: 12) {
+            VSplitView {
                 Readme(folder: passRootDir)
                 Entries(folder: passRootDir)
             }
             .padding()
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             if let e = gpgPathErrorMessage {
-                StatusBar(left: e, right: "error")
+                StatusBar(
+                    left: { Text(e) },
+                    right: { Text("error") }
+                )
             } else if let p = gpgPath {
-                StatusBar(left: p, right: gpgVersion!)
+                StatusBar(
+                    left: { Text("gpg").tooltip(p) },
+                    right: { Text(gpgVersion!.0).tooltip(gpgVersion!.1) }
+                )
             }
         }
         .frame(width: 480, height: 800)
