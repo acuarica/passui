@@ -5,6 +5,8 @@ struct Entries: View {
 
     @State private var items: [VaultItem] = []
     @State private var errorMessage: String?
+
+    // FIX: WARNING: Application performed a reentrant operation in its NSTableView delegate. This warning will become an assert in the future.
     @State private var searchText: String = ""
 
     var body: some View {
@@ -23,11 +25,15 @@ struct Entries: View {
                     .frame(width: 12, height: 12)
                     .padding(.leading, 5)
                     .opacity(0.8)
-
                 TextField("Search vault items...", text: $searchText)
                     .textFieldStyle(.roundedBorder)
                     .frame(width: 200)
-
+                Button(action: { searchText = "" }) {
+                    Image(systemName: "xmark.circle.fill")
+                }
+                .padding(.trailing, 8)
+                .disabled(searchText == "")
+                .buttonStyle(.borderless)
                 Divider()
                     .frame(height: 14)
                     .padding(.leading, 8)
