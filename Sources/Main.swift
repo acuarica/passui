@@ -19,13 +19,17 @@ private struct ContentsView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // VStack(alignment: .leading, spacing: 12) {
-            VSplitView {
-                Readme(folder: passRootDir)
-                Entries(folder: passRootDir)
-            }
+            VSplit(
+                top: {
+                    Readme(folder: passRootDir)
+                        .frame(idealHeight: 200)
+                },
+                bottom: {
+                    Entries(folder: passRootDir)
+                        .frame(idealHeight: 600)
+                }
+            )
             .padding()
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             if let e = gpgPathErrorMessage {
                 StatusBar(
                     left: { Text(e) },

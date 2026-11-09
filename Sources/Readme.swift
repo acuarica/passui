@@ -10,7 +10,6 @@ struct Readme: View {
                     Text(LocalizedStringKey(content))
                         .textSelection(.enabled)
                 }
-                .frame(height: 220)
                 Label(fileName, systemImage: "book")
                     .font(.caption2.weight(.semibold))
                     .foregroundStyle(.secondary)
