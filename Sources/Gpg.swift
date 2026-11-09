@@ -1,6 +1,6 @@
 import Foundation
 
-func getGpgPath() throws -> String {
+func getGpgExecPath() throws -> String {
     print("Locating GPG binary...")
 
     let process = Process()
@@ -25,7 +25,7 @@ func getGpgPath() throws -> String {
     }
 
     let path = out.trimmingCharacters(in: .whitespacesAndNewlines)
-    print("> GPG found in", path)
+    print("> GPG executable found in", path)
     return path
 }
 
@@ -46,7 +46,7 @@ struct Gpg {
     }
 
     func info(_ path: String) throws -> String {
-        let (out, _) = try gpg(["--list-packets" + path])
+        let (out, _) = try gpg(["--list-packets", path])
         return out
     }
 

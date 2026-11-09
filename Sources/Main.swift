@@ -48,7 +48,7 @@ private struct ContentsView: View {
 
     private func loadGpgPath() {
         do {
-            let gpg = Gpg(execPath: try getGpgPath())
+            let gpg = Gpg(execPath: try getGpgExecPath())
 
             gpgVersion = try gpg.version()
             gpgPath = gpg.execPath
