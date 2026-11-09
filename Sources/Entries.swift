@@ -47,15 +47,24 @@ struct Entries: View {
                                     .frame(width: 24, height: 24)
                                     .padding(.top, 4)
                                 VStack(alignment: .leading, spacing: 4) {
-                                    Text(item.label)
-                                        .font(.system(size: 14))
+                                    HStack {
+                                        Text(item.label)
+                                            .font(.system(size: 14))
+                                        Text(".\(item.url.pathExtension)")
+                                            .padding(4)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 4)
+                                                    .fill(Color.cyan.opacity(0.3))
+
+                                            )
+
+                                    }
                                     Text(item.createdAtLabel)
                                         .foregroundStyle(.secondary)
                                     Text(item.modifiedAtLabel)
                                         .foregroundStyle(.secondary)
                                 }
                                 .font(.caption)
-                                .tooltip(item.url.path)
                                 Spacer()
                                 Image(systemName: "chevron.right")
                                     .font(.caption)
