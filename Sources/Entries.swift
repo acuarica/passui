@@ -5,6 +5,7 @@ struct Entries: View {
 
     @State private var items: [VaultItem] = []
     @State private var errorMessage: String?
+    @State private var searchText: String = ""
 
     var body: some View {
         VStack {
@@ -18,6 +19,20 @@ struct Entries: View {
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
+                Image(systemName: "magnifyingglass").resizable().aspectRatio(contentMode: .fill)
+                    .frame(width: 12, height: 12)
+                    .padding(.leading, 5)
+                    .opacity(0.8)
+
+                TextField("Search vault items...", text: $searchText)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 200)
+
+                Divider()
+                    .frame(height: 14)
+                    .padding(.leading, 8)
+                    .padding(.trailing, 8)
+
                 Button(action: loadDirectory) {
                     Image(systemName: "arrow.clockwise")
                 }
@@ -39,73 +54,24 @@ struct Entries: View {
             } else {
                 NavigationStack {
                     List(items) { item in
-                        NavigationLink(value: item.url) {
-                            HStack(alignment: .top) {
-                                Image(systemName: item.isDirectory ? "folder" : "lock.doc")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 24, height: 24)
-                                    .padding(.top, 4)
-                                VStack(alignment: .leading, spacing: 4) {
-                                    HStack {
-                                        Text(item.label)
-                                            .font(.system(size: 14))
-                                        Text(".\(item.url.pathExtension)")
-                                            .padding(4)
-                                            .background(
-                                                RoundedRectangle(cornerRadius: 4)
-                                                    .fill(Color.cyan.opacity(0.3))
-
-                                            )
-
-                                    }
-                                    Text(item.createdAtLabel)
-                                        .foregroundStyle(.secondary)
-                                    Text(item.modifiedAtLabel)
-                                        .foregroundStyle(.secondary)
-                                }
-                                .font(.caption)
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                    .padding(.top, 20)
+                        if searchText.isEmpty
+                            || item.label.localizedCaseInsensitiveContains(searchText)
+                        {
+                            NavigationLink(value: item.url) {
+                                VaultItemView(item: item)
                             }
-                            .padding(8)
                         }
-
-                        // NavigationLink {
-                        //     ColorDetail(color: .mint, text: item.url.lastPathComponent)
-                        // }
-
-                        // Button {
-                        // handleItemClick(item)
-                        // } label: {
-                        // .frame(maxWidth: .infinity, alignment: .leading)
-                        // .contentShape(Rectangle())
-                        // }
-
-                        // Text("Detail view for \(item)")
-                        // .navigationTitle("Friend")
-                        // .navigationBarTitleDisplayMode(.inline)
-                        // }
-
                     }
                     .listStyle(.bordered)
                     .navigationDestination(for: URL.self) { url in
                         VStack {
                             Text(url.lastPathComponent)
                             Divider()
-                            // Text(gpgInfo(url.path))
-                            // Divider()
-                            // Text((try? gpgDecrypt(url.path)) ?? "no")
                             Spacer()
-                            Text(url.lastPathComponent)
+                            Text("")
                         }
                     }
-
-                    .navigationTitle("Frameworks")
-
+                    .navigationTitle("Vault Items")
                 }
             }
         }
@@ -143,6 +109,43 @@ struct Entries: View {
             items = []
             errorMessage = error.localizedDescription
         }
+    }
+}
+
+private struct VaultItemView: View {
+    let item: VaultItem
+
+    var body: some View {
+        HStack(alignment: .top) {
+            Image(systemName: item.isDirectory ? "folder" : "lock.doc")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 24, height: 24)
+                .padding(.top, 4)
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text(item.label)
+                        .font(.system(size: 14))
+                    Text(".\(item.url.pathExtension)")
+                        .padding(4)
+                        .background(
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color.cyan.opacity(0.3))
+                        )
+                }
+                Text(item.createdAtLabel)
+                    .foregroundStyle(.secondary)
+                Text(item.modifiedAtLabel)
+                    .foregroundStyle(.secondary)
+            }
+            .font(.caption)
+            Spacer()
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .padding(.top, 20)
+        }
+        .padding(8)
     }
 }
 
