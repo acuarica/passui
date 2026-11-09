@@ -9,6 +9,7 @@ private struct Tooltip<TTContent: View>: ViewModifier {
         self.tooltipContent = content()
     }
 
+    /// Fix before using it
     func body(content: Content) -> some View {
         content
             .onHover { hovering in
