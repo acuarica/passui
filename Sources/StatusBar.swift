@@ -1,14 +1,14 @@
 import SwiftUI
 
-struct StatusBar: View {
-    let left: String
-    let right: String
+struct StatusBar<Left: View, Right: View>: View {
+    @ViewBuilder let left: () -> Left
+    @ViewBuilder let right: () -> Right
 
     var body: some View {
         HStack(spacing: 8) {
-            Text(left)
+            left()
             Spacer()
-            Text(right)
+            right()
             Divider()
                 .frame(height: 14)
                 .padding(.leading, 6)
@@ -17,7 +17,6 @@ struct StatusBar: View {
                 NSApplication.shared.terminate(nil)
             }
         }
-        .font(.caption2)
         .foregroundStyle(.primary)
         .padding(.horizontal, 8)
         .padding(.vertical, 6)
