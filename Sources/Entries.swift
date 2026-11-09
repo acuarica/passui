@@ -70,12 +70,7 @@ struct Entries: View {
                     }
                     .listStyle(.bordered)
                     .navigationDestination(for: URL.self) { url in
-                        VStack {
-                            Text(url.lastPathComponent)
-                            Divider()
-                            Spacer()
-                            Text("")
-                        }
+                        DetailView(url: url)
                     }
                     .navigationTitle("Vault Items")
                 }
@@ -172,5 +167,44 @@ private struct VaultItem: Identifiable {
             .replacingOccurrences(of: "_", with: " ")
             .replacingOccurrences(of: "-", with: " ")
             .capitalized
+    }
+}
+
+private struct DetailView: View {
+    let url: URL
+    @State private var info: String?
+    @State private var detail: String?
+
+    var body: some View {
+        VStack {
+            Text(url.lastPathComponent)
+            Divider()
+            if let info {
+                Text(info)
+                    .textSelection(.enabled)
+            } else {
+                Text("error could not load gpg info")
+            }
+            Divider()
+            if let detail {
+                Text(detail)
+                    .textSelection(.enabled)
+            } else {
+                Text("error could not load gpg detail")
+            }
+            Spacer()
+            Text("")
+        }
+        .onAppear(perform: loadGpgInfo)
+    }
+
+    private func loadGpgInfo() {
+        do {
+            let gpg = Gpg(execPath: try getGpgExecPath())
+            info = try gpg.info(url.path)
+            detail = try gpg.decrypt(url.path)
+        } catch {
+            // info = nil
+        }
     }
 }
