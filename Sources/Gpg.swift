@@ -34,20 +34,25 @@ func getGpgExecPath() throws -> String {
     return path
 }
 
+struct Version {
+    let number: String
+    let info: String
+}
+
 struct Gpg {
     let execPath: String
 
-    func version() throws -> (String, String) {
+    func version() throws -> Version {
         let (out, err) = try gpg(["--version"])
         guard err.isEmpty else {
             throw CommandError.commandFailed(exitCode: 0, out: out, err: err)
         }
 
-        let version = out.split(whereSeparator: \.isNewline)[0...1].joined(separator: "/")
-        let homeAndAlgos = out.components(separatedBy: "\n\n")[1].trimmingCharacters(
+        let number = out.split(whereSeparator: \.isNewline)[0...1].joined(separator: "/")
+        let info = out.components(separatedBy: "\n\n")[1].trimmingCharacters(
             in: .whitespacesAndNewlines)
 
-        return (version, homeAndAlgos)
+        return Version(number: number, info: info)
     }
 
     func info(_ path: String) throws -> String {
