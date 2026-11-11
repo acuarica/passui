@@ -13,7 +13,18 @@ struct MenuBarApp: App {
 private struct ContentsView: View {
     private let passRootDir = getPassRootDir()
 
-    @State private var gpgInfo: Result<(String, Result<(String, String), any Error>), any Error>?
+    private var gpg: Result<(Gpg, Result<Version, any Error>), any Error> = {
+        do {
+            let gpg = Gpg(execPath: try getGpgExecPath())
+            do {
+                return .success((gpg, .success(try gpg.version())))
+            } catch {
+                return .success((gpg, .failure(error)))
+            }
+        } catch {
+            return .failure(error)
+        }
+    }()
 
     var body: some View {
         VStack(spacing: 0) {
@@ -28,46 +39,27 @@ private struct ContentsView: View {
                 }
             )
             .padding()
-            if let gpgInfo {
-                switch gpgInfo {
-                case .success(let gpgInfo):
-                    StatusBar(
-                        left: { Text("gpg").tooltip(gpgInfo.0) },
-                        right: {
-                            switch gpgInfo.1 {
-                            case .success(let version):
-                                Text(version.0).tooltip(version.1)
-                            case .failure(let error):
-                                Text("gpg version: \(error)")
-                            }
+            switch gpg {
+            case .success(let gpg):
+                StatusBar(
+                    left: { Text("gpg").tooltip(gpg.0.execPath) },
+                    right: {
+                        switch gpg.1 {
+                        case .success(let version):
+                            Text(version.number).tooltip(version.info)
+                        case .failure(let error):
+                            Text("gpg version: \(error)")
                         }
-                    )
-                case .failure(let error):
-                    StatusBar(
-                        left: { Text("gpg: \(error)").foregroundStyle(.orange) },
-                        right: { EmptyView() }
-                    )
-                }
-            } else {
-                StatusBar(left: { Text("...") }, right: { Text("") })
+                    }
+                )
+            case .failure(let error):
+                StatusBar(
+                    left: { Text("gpg: \(error)").foregroundStyle(.orange) },
+                    right: { EmptyView() }
+                )
             }
         }
         .frame(width: 480, height: 800)
-        .onAppear(perform: loadGpgInfo)
-    }
-
-    private func loadGpgInfo() {
-        do {
-            let execPath = try getGpgExecPath()
-            let gpg = Gpg(execPath: execPath)
-            do {
-                gpgInfo = .success((execPath, .success(try gpg.version())))
-            } catch {
-                gpgInfo = .success((execPath, .failure(error)))
-            }
-        } catch {
-            gpgInfo = .failure(error)
-        }
     }
 }
 
