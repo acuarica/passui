@@ -14,8 +14,8 @@ func getGpgExecPath() throws -> String {
 
     process.standardOutput = stdOut
     process.standardError = stdErr
-    process.arguments = ["-c", "which gpg"]
-    process.executableURL = URL(fileURLWithPath: "/bin/sh")
+    process.arguments = ["-i", "-c", "which gpg"]
+    process.executableURL = URL(fileURLWithPath: "/bin/bash")
     try process.run()
     process.waitUntilExit()
 
