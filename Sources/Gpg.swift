@@ -1,5 +1,10 @@
 import Foundation
 
+private enum CommandError: Error {
+    case invalidData
+    case commandFailed(exitCode: Int32, out: String, err: String)
+}
+
 func getGpgExecPath() throws -> String {
     print("Locating GPG binary...")
 
@@ -12,16 +17,16 @@ func getGpgExecPath() throws -> String {
     process.arguments = ["-c", "which gpg"]
     process.executableURL = URL(fileURLWithPath: "/bin/sh")
     try process.run()
+    process.waitUntilExit()
 
     let out = try readToEOF(stdOut)
     let err = try readToEOF(stdErr)
 
-    process.waitUntilExit()
     guard process.terminationStatus == 0 else {
-        throw CommandError.commandFailed(out)
+        throw CommandError.commandFailed(exitCode: process.terminationStatus, out: out, err: err)
     }
     guard err.isEmpty else {
-        throw CommandError.commandFailed(err)
+        throw CommandError.commandFailed(exitCode: 0, out: out, err: err)
     }
 
     let path = out.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -35,7 +40,7 @@ struct Gpg {
     func version() throws -> (String, String) {
         let (out, err) = try gpg(["--version"])
         guard err.isEmpty else {
-            throw CommandError.commandFailed(err)
+            throw CommandError.commandFailed(exitCode: 0, out: out, err: err)
         }
 
         let version = out.split(whereSeparator: \.isNewline)[0...1].joined(separator: "/")
@@ -68,13 +73,14 @@ struct Gpg {
         process.executableURL = URL(fileURLWithPath: execPath)
 
         try process.run()
+        process.waitUntilExit()
 
         let out = try readToEOF(stdOut)
         let err = try readToEOF(stdErr)
 
-        process.waitUntilExit()
         guard process.terminationStatus == 0 else {
-            throw CommandError.commandFailed(out)
+            throw CommandError.commandFailed(
+                exitCode: process.terminationStatus, out: out, err: err)
         }
 
         return (out, err)
@@ -87,9 +93,4 @@ private func readToEOF(_ pipe: Pipe) throws -> String {
         throw CommandError.invalidData
     }
     return text
-}
-
-private enum CommandError: Error {
-    case commandFailed(String)
-    case invalidData
 }
