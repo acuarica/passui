@@ -13,50 +13,60 @@ struct MenuBarApp: App {
 private struct ContentsView: View {
     private let passRootDir = getPassRootDir()
 
-    @State private var gpgVersion: (String, String)?
-    @State private var gpgPath: String?
-    @State private var gpgPathErrorMessage: String?
+    @State private var gpgInfo: Result<(String, Result<(String, String), any Error>), any Error>?
 
     var body: some View {
         VStack(spacing: 0) {
             VSplit(
                 top: {
                     Readme(folder: passRootDir)
-                        .frame(idealHeight: 200)
+                        .frame(idealHeight: 300)
                 },
                 bottom: {
                     Entries(folder: passRootDir)
-                        .frame(idealHeight: 600)
+                        .frame(idealHeight: 500)
                 }
             )
             .padding()
-            if let e = gpgPathErrorMessage {
-                StatusBar(
-                    left: { Text(e) },
-                    right: { Text("error") }
-                )
-            } else if let p = gpgPath {
-                StatusBar(
-                    left: { Text("gpg").tooltip(p) },
-                    right: { Text(gpgVersion!.0).tooltip(gpgVersion!.1) }
-                )
+            if let gpgInfo {
+                switch gpgInfo {
+                case .success(let gpgInfo):
+                    StatusBar(
+                        left: { Text("gpg").tooltip(gpgInfo.0) },
+                        right: {
+                            switch gpgInfo.1 {
+                            case .success(let version):
+                                Text(version.0).tooltip(version.1)
+                            case .failure(let error):
+                                Text("gpg version: \(error)")
+                            }
+                        }
+                    )
+                case .failure(let error):
+                    StatusBar(
+                        left: { Text("gpg: \(error)").foregroundStyle(.orange) },
+                        right: { EmptyView() }
+                    )
+                }
+            } else {
+                StatusBar(left: { Text("...") }, right: { Text("") })
             }
         }
         .frame(width: 480, height: 800)
-        .onAppear(perform: loadGpgPath)
+        .onAppear(perform: loadGpgInfo)
     }
 
-    private func loadGpgPath() {
+    private func loadGpgInfo() {
         do {
-            let gpg = Gpg(execPath: try getGpgExecPath())
-
-            gpgVersion = try gpg.version()
-            gpgPath = gpg.execPath
-            gpgPathErrorMessage = nil
+            let execPath = try getGpgExecPath()
+            let gpg = Gpg(execPath: execPath)
+            do {
+                gpgInfo = .success((execPath, .success(try gpg.version())))
+            } catch {
+                gpgInfo = .success((execPath, .failure(error)))
+            }
         } catch {
-            gpgVersion = nil
-            gpgPath = nil
-            gpgPathErrorMessage = error.localizedDescription
+            gpgInfo = .failure(error)
         }
     }
 }
