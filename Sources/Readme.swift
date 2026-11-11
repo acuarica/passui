@@ -4,7 +4,7 @@ struct Readme: View {
     let folder: URL
 
     var body: some View {
-        if let (fileName, content) = getReadmeContent() {
+        if let (fileName, fileURL, content) = Readme.getContent(at: folder) {
             ZStack(alignment: .topTrailing) {
                 ScrollView {
                     Text(LocalizedStringKey(content))
@@ -19,21 +19,14 @@ struct Readme: View {
                         RoundedRectangle(cornerRadius: 6)
                             .fill(Color.blue.opacity(0.2))
                     )
-                    .tooltip(folder.path)
+                    .tooltip(fileURL.path)
             }
         }
     }
 
-    private func getReadmeContent() -> (String, String)? {
+    private static func getContent(at folder: URL) -> (String, URL, String)? {
         let fileName = "README.md"
-        do {
-            return try (
-                fileName,
-                String(
-                    contentsOf: folder.appendingPathComponent(fileName), encoding: .utf8)
-            )
-        } catch {
-            return nil
-        }
+        let fileURL = folder.appendingPathComponent(fileName)
+        return try? (fileName, fileURL, String(contentsOf: fileURL, encoding: .utf8))
     }
 }
