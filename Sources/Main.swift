@@ -11,7 +11,23 @@ struct MenuBarApp: App {
 }
 
 private struct ContentsView: View {
-    private let passRootDir = getPassRootDir()
+    private let passRootDir: URL = {
+        let configRoot =
+            if let xdgConfigHome = ProcessInfo.processInfo.environment["XDG_CONFIG_HOME"],
+                xdgConfigHome.hasPrefix("/")
+            {
+                URL(fileURLWithPath: xdgConfigHome, isDirectory: true)
+            } else {
+                FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(
+                    ".config", isDirectory: true)
+            }
+
+        let dirURL = configRoot.appendingPathComponent("passui", isDirectory: true)
+        let resolvedURL = dirURL.resolvingSymlinksInPath()
+        print("Vault root folder", resolvedURL)
+
+        return resolvedURL
+    }()
 
     private var gpg: Result<(Gpg, Result<Version, any Error>), any Error> = {
         do {
@@ -61,22 +77,4 @@ private struct ContentsView: View {
         }
         .frame(width: 480, height: 800)
     }
-}
-
-private func getPassRootDir() -> URL {
-    let configRoot =
-        if let xdgConfigHome = ProcessInfo.processInfo.environment["XDG_CONFIG_HOME"],
-            xdgConfigHome.hasPrefix("/")
-        {
-            URL(fileURLWithPath: xdgConfigHome, isDirectory: true)
-        } else {
-            FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(
-                ".config", isDirectory: true)
-        }
-
-    let dirURL = configRoot.appendingPathComponent("passui", isDirectory: true)
-    let resolvedURL = dirURL.resolvingSymlinksInPath()
-    print("Vault root folder", resolvedURL)
-
-    return resolvedURL
 }
