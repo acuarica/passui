@@ -2,12 +2,13 @@
 APP=PassUI.app
 
 app:
+	swift build --configuration release
 	mkdir -p "$(APP)/Contents/MacOS"
-	cp -f $$(swift build --configuration debug --show-bin-path)/sinit "$(APP)/Contents/MacOS"
+	cp -f $$(swift build --configuration release --show-bin-path)/passui "$(APP)/Contents/MacOS"
 	cp -f Info.plist "$(APP)/Contents"
 
 clean:
-	rm -r $(APP)
+	-rm -rv $(APP)
 
 hooks:
 	git config core.hooksPath .githooks

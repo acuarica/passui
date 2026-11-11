@@ -4,13 +4,13 @@
 import PackageDescription
 
 let package = Package(
-    name: "sinit",
+    name: "passui",
     platforms: [.macOS(.v14)],
 
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
-        .executableTarget(name: "sinit"),
-        .testTarget(name: "sinitTests", dependencies: ["sinit"]),
+        .executableTarget(name: "passui"),
+        .testTarget(name: "passuiTests", dependencies: ["passui"]),
     ]
 )

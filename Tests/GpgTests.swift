@@ -1,6 +1,6 @@
 import XCTest
 
-@testable import sinit
+@testable import passui
 
 final class ttTests: XCTestCase {
     func testExample() throws {

@@ -5,7 +5,7 @@
     <key>CFBundleIdentifier</key>          <string>dev.sinit</string>
     <key>CFBundleName</key>                <string>passui name</string>
     <key>CFBundleDisplayName</key>         <string>passui dis</string>
-    <key>CFBundleExecutable</key>          <string>sinit</string>
+    <key>CFBundleExecutable</key>          <string>passui</string>
     <key>CFBundleIconFile</key>            <string>AppIcon</string>
     <key>CFBundleIconName</key>            <string>AppIcon</string>
     <key>CFBundlePackageType</key>         <string>APPL</string>
