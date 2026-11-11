@@ -23,14 +23,16 @@ func getGpgExecPath() throws -> String {
     let err = try readToEOF(stdErr)
 
     guard process.terminationStatus == 0 else {
+        print("> GPG executable not found: exit code", process.terminationStatus)
         throw CommandError.commandFailed(exitCode: process.terminationStatus, out: out, err: err)
     }
     guard err.isEmpty else {
+        print("> GPG executable not found: stderr", err)
         throw CommandError.commandFailed(exitCode: 0, out: out, err: err)
     }
 
     let path = out.trimmingCharacters(in: .whitespacesAndNewlines)
-    print("> GPG executable found in", path)
+    print("> GPG executable found: path", path)
     return path
 }
 

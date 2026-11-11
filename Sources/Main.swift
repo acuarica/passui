@@ -47,11 +47,11 @@ private struct ContentsView: View {
             VSplit(
                 top: {
                     Readme(folder: passRootDir)
-                        .frame(idealHeight: 300)
+                        .frame(idealHeight: 200)
                 },
                 bottom: {
-                    Entries(folder: passRootDir)
-                        .frame(idealHeight: 500)
+                    Entries(folder: passRootDir, gpg: try? gpg.get().0)
+                        .frame(idealHeight: 600)
                 }
             )
             .padding()

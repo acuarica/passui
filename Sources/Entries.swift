@@ -2,6 +2,7 @@ import SwiftUI
 
 struct Entries: View {
     let folder: URL
+    let gpg: Gpg?
 
     @State private var items: [VaultItem] = []
     @State private var errorMessage: String?
@@ -70,7 +71,15 @@ struct Entries: View {
                     }
                     .listStyle(.bordered)
                     .navigationDestination(for: URL.self) { url in
-                        DetailView(url: url)
+                        if let gpg {
+                            DetailView(url: url, gpg: gpg)
+                        } else {
+                            ContentUnavailableView(
+                                "Couldn't decrypt vault item",
+                                systemImage: "exclamationmark.triangle",
+                                description: Text("GPG not available")
+                            )
+                        }
                     }
                     .navigationTitle("Vault Items")
                 }
@@ -172,6 +181,8 @@ private struct VaultItem: Identifiable {
 
 private struct DetailView: View {
     let url: URL
+    let gpg: Gpg
+
     @State private var info: String?
     @State private var detail: String?
 
@@ -200,7 +211,6 @@ private struct DetailView: View {
 
     private func loadGpgInfo() {
         do {
-            let gpg = Gpg(execPath: try getGpgExecPath())
             info = try gpg.info(url.path)
             detail = try gpg.decrypt(url.path)
         } catch {
