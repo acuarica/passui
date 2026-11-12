@@ -1,10 +1,10 @@
-
 APP=PassUI.app
+BUILD=release
 
 app:
-	swift build --configuration release
+	swift build --configuration $(BUILD)
 	mkdir -p "$(APP)/Contents/MacOS"
-	cp -f $$(swift build --configuration release --show-bin-path)/passui "$(APP)/Contents/MacOS"
+	cp -f $$(swift build --configuration $(BUILD) --show-bin-path)/passui "$(APP)/Contents/MacOS"
 	cp -f Info.plist "$(APP)/Contents"
 
 clean:
