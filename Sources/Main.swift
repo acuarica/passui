@@ -10,29 +10,6 @@ struct PassUIApp: App {
 }
 
 private struct ContentsView: View {
-    // private let passRootDir123 = {
-    //     let ss = FileManager.default.enumerator(at: resolvedURL, includingPropertiesForKeys: nil)!
-
-    //     var fileURLs: [URL] = []
-    //     let resourceKeys = Set<URLResourceKey>([.nameKey, .isDirectoryKey])
-    //     var tree: [URL: [URL]] = [:]
-
-    //     for case let fileURL as URL in ss {
-    //         guard let resourceValues = try? fileURL.resourceValues(forKeys: resourceKeys),
-    //             let isDirectory = resourceValues.isDirectory,
-    //             let name = resourceValues.name
-    //             else {
-    //                 continue
-    //         }
-    //         if isDirectory {
-    //         } else {
-    //             print(fileURL)
-    //             fileURLs.append(fileURL)
-    //         }
-    //     }
-    //     // print(fileURLs)
-    // }
-
     private let passRootDir: URL
     private let gpg: Result<(Gpg, Result<Version, any Error>), any Error>
     private let readme: (URL, Result<String, Error>)?
@@ -47,6 +24,9 @@ private struct ContentsView: View {
                 ).resolvingSymlinksInPath()
             }
         print("Pass root folder", passRootDir)
+
+        dirs = Vault(folder: passRootDir).load()
+        self.selectedCategory = dirs[0]
 
         do {
             let gpg = Gpg(
@@ -74,6 +54,10 @@ private struct ContentsView: View {
         }
     }
 
+    private let dirs: [VaultFolder]
+
+    @State private var selectedCategory: VaultFolder?
+
     @State private var items: Result<[VaultItem], any Error>?
     @State private var searchText: String = ""
     @State private var selection: VaultItem? = nil
@@ -81,8 +65,18 @@ private struct ContentsView: View {
     var body: some View {
         VStack(spacing: 2) {
             NavigationSplitView {
-                Text("sidebar")
-                    .navigationTitle("Sidebar title")
+
+                List(selection: $selectedCategory) {
+                    ForEach(dirs, id: \.self) { category in
+                        Text(category.url.lastPathComponent)
+                    }
+                }
+                .navigationTitle("Sidebar title")
+
+                // ForEach(items, id: \.self) { item in
+                // VaultItemView(item: item)
+                // .tag(item)
+
             } content: {
                 if let items {
                     switch items {
@@ -110,6 +104,16 @@ private struct ContentsView: View {
                     }
                 } else {
                     Text("more err")
+
+                    if let items = selectedCategory?.items {
+                        List(selection: $selection) {
+                            ForEach(items, id: \.self) { item in
+                                VaultItemView(item: item)
+                                    .tag(item)
+                            }
+                        }
+                    }
+
                 }
             } detail: {
                 if let selection {
@@ -140,13 +144,18 @@ private struct ContentsView: View {
                 }
             }
             .toolbar {
+                Button("refresh", systemImage: "arrow.clockwise", action: loadItems)
                 if readme != nil {
                     Button("readme", systemImage: "book", action: { selection = nil })
                 }
             }
-            .onAppear(perform: { items = Vault(folder: passRootDir).loadDirectory() })
+            .onAppear(perform: loadItems)
             statusBar()
         }
+    }
+
+    private func loadItems() {
+        // items = Vault(folder: passRootDir).loadDirectory()
     }
 
     @ViewBuilder private func statusBar() -> some View {
