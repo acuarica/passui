@@ -5,8 +5,8 @@ private enum CommandError: Error {
     case commandFailed(exitCode: Int32, out: String, err: String)
 }
 
-func getGpgExecPath() throws -> String {
-    print("Locating GPG binary...")
+func getGpgExecPath(for programName: String) throws -> String {
+    print("Locating GPG binary for: \(programName) ...")
 
     let process = Process()
     let stdOut = Pipe()
@@ -14,7 +14,7 @@ func getGpgExecPath() throws -> String {
 
     process.standardOutput = stdOut
     process.standardError = stdErr
-    process.arguments = ["-i", "-c", "which gpg"]
+    process.arguments = ["-i", "-c", "which \(programName)"]
     process.executableURL = URL(fileURLWithPath: "/bin/bash")
     try process.run()
     process.waitUntilExit()
@@ -58,8 +58,8 @@ struct Gpg {
     }
 
     func info(_ path: String) throws -> String {
-        let (out, _) = try gpg(["--list-packets", path])
-        return out
+        let (out, err) = try gpg(["--list-only", "--list-packets", "--verbose", path])
+        return err + out
     }
 
     func decrypt(_ path: String) throws -> String {
