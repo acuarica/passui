@@ -78,38 +78,38 @@ private struct ContentsView: View {
             if let items {
 
                 switch items {
-                case .success(let items):
-                    List(selection: $selection) {
-                        ForEach(items, id: \.self) { item in
-                            // NavigationLink {
-                            //     VaultItemView(item: e)
-                            // } label: {
-                            //     VaultItemView(item: e)
-                            // }
+                    case .success(let items):
+                        List(selection: $selection) {
+                            ForEach(items, id: \.self) { item in
+                                // NavigationLink {
+                                //     VaultItemView(item: e)
+                                // } label: {
+                                //     VaultItemView(item: e)
+                                // }
 
-                            // NavigationLink(value: item) {
-                            VaultItemView(item: item)
-                                .tag(item)
-                            // }
+                                // NavigationLink(value: item) {
+                                VaultItemView(item: item)
+                                    .tag(item)
+                                // }
+                            }
                         }
-                    }
 
-                    .navigationDestination(for: VaultItem.self) { url in
-                        if case let .success(gpg) = gpg {
-                            DetailView(url: url.url, gpg: gpg.0)
-                        } else {
-                            ContentUnavailableView(
-                                "Couldn't decrypt vault item",
-                                systemImage: "exclamationmark.triangle",
-                                description: Text("GPG not available")
-                            )
+                        .navigationDestination(for: VaultItem.self) { url in
+                            if case let .success(gpg) = gpg {
+                                DetailView(url: url.url, gpg: gpg.0)
+                            } else {
+                                ContentUnavailableView(
+                                    "Couldn't decrypt vault item",
+                                    systemImage: "exclamationmark.triangle",
+                                    description: Text("GPG not available")
+                                )
+                            }
                         }
-                    }
-                    // .navigationTitle("Vault Itemssdkjsdjksd")
-                    .searchable(text: $searchText, prompt: "asdf and 1234")
-                // .searchable(text: $searchText)
-                case .failure(let error):
-                    Text("\(error)")
+                        // .navigationTitle("Vault Itemssdkjsdjksd")
+                        .searchable(text: $searchText, prompt: "asdf and 1234")
+                    // .searchable(text: $searchText)
+                    case .failure(let error):
+                        Text("\(error)")
                 }
 
             } else {
@@ -157,18 +157,18 @@ private struct ContentsView: View {
     @ViewBuilder private func statusBar() -> some View {
         HStack(spacing: 8) {
             switch gpg {
-            case .success(let gpg):
-                Text(URL(fileURLWithPath: gpg.0.execPath).lastPathComponent)
-                    .tooltip(gpg.0.execPath)
-                Spacer()
-                switch gpg.1 {
-                case .success(let version):
-                    Text(version.number).tooltip(version.info)
+                case .success(let gpg):
+                    Text(URL(fileURLWithPath: gpg.0.execPath).lastPathComponent)
+                        .tooltip(gpg.0.execPath)
+                    Spacer()
+                    switch gpg.1 {
+                        case .success(let version):
+                            Text(version.number).tooltip(version.info)
+                        case .failure(let error):
+                            Text("gpg version: \(error)").foregroundStyle(.orange)
+                    }
                 case .failure(let error):
-                    Text("gpg version: \(error)").foregroundStyle(.orange)
-                }
-            case .failure(let error):
-                Text("gpg: \(error)").foregroundStyle(.orange)
+                    Text("gpg: \(error)").foregroundStyle(.orange)
             }
         }
         .foregroundStyle(.primary)
