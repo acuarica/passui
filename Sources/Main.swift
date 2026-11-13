@@ -35,7 +35,7 @@ private struct ContentsView: View {
 
     private let passRootDir: URL
     private let gpg: Result<(Gpg, Result<Version, any Error>), any Error>
-    private let readme: String
+    private let readme: (URL, Result<String, Error>)?
 
     init(config: Config) {
         passRootDir =
@@ -61,101 +61,96 @@ private struct ContentsView: View {
             self.gpg = .failure(error)
         }
 
-        readme = config.readme ?? "README.md"
+        if let showReadme = config.showReadme, !showReadme {
+            readme = nil
+        } else {
+            let fileName = config.readme ?? "README.md"
+            let fileURL = passRootDir.appendingPathComponent(fileName)
+            do {
+                readme = (fileURL, .success(try String(contentsOf: fileURL, encoding: .utf8)))
+            } catch {
+                readme = config.readme != nil ? (fileURL, .failure(error)) : nil
+            }
+        }
     }
 
     @State private var items: Result<[VaultItem], any Error>?
     @State private var searchText: String = ""
-
     @State private var selection: VaultItem? = nil
 
     var body: some View {
-        NavigationSplitView {
-            Text("sidebar")
-                .navigationTitle("Sidebar title")
-
-        } content: {
-            if let items {
-
-                switch items {
-                    case .success(let items):
-                        List(selection: $selection) {
-                            ForEach(items, id: \.self) { item in
-                                // NavigationLink {
-                                //     VaultItemView(item: e)
-                                // } label: {
-                                //     VaultItemView(item: e)
-                                // }
-
-                                // NavigationLink(value: item) {
-                                VaultItemView(item: item)
-                                    .tag(item)
-                                // }
+        VStack(spacing: 2) {
+            NavigationSplitView {
+                Text("sidebar")
+                    .navigationTitle("Sidebar title")
+            } content: {
+                if let items {
+                    switch items {
+                        case .success(let items):
+                            List(selection: $selection) {
+                                ForEach(items, id: \.self) { item in
+                                    VaultItemView(item: item)
+                                        .tag(item)
+                                }
                             }
-                        }
-
-                        .navigationDestination(for: VaultItem.self) { url in
-                            if case let .success(gpg) = gpg {
-                                DetailView(url: url.url, gpg: gpg.0)
-                            } else {
-                                ContentUnavailableView(
-                                    "Couldn't decrypt vault item",
-                                    systemImage: "exclamationmark.triangle",
-                                    description: Text("GPG not available")
-                                )
+                            .navigationDestination(for: VaultItem.self) { url in
+                                if case let .success(gpg) = gpg {
+                                    DetailView(url: url.url, gpg: gpg.0)
+                                } else {
+                                    ContentUnavailableView(
+                                        "Couldn't decrypt vault item",
+                                        systemImage: "exclamationmark.triangle",
+                                        description: Text("GPG not available")
+                                    )
+                                }
                             }
-                        }
-                        // .navigationTitle("Vault Itemssdkjsdjksd")
-                        .searchable(text: $searchText, prompt: "asdf and 1234")
-                    // .searchable(text: $searchText)
-                    case .failure(let error):
-                        Text("\(error)")
-                }
-
-            } else {
-                Text("more err")
-            }
-        } detail: {
-            Readme(folder: passRootDir, readme: readme)
-            if let selection {
-                if case let .success(gpg) = gpg {
-                    DetailView(url: selection.url, gpg: gpg.0)
+                            .searchable(text: $searchText, prompt: "Search vault items...")
+                        case .failure(let error):
+                            Text("\(error)")
+                    }
                 } else {
-                    Text("err gpg")
+                    Text("more err")
                 }
-            } else {
-
-                Text("det")
+            } detail: {
+                if let selection {
+                    if case let .success(gpg) = gpg {
+                        DetailView(url: selection.url, gpg: gpg.0)
+                    } else {
+                        Text("err gpg")
+                    }
+                } else {
+                    if let readme {
+                        switch readme.1 {
+                            case .success(let content):
+                                readmeView(fileURL: readme.0, content: content)
+                                    .padding()
+                            case .failure(let error):
+                                ContentUnavailableView(
+                                    "Couldn't load \(readme.0.lastPathComponent)",
+                                    systemImage: "exclamationmark.triangle",
+                                    description: Text("\(error)")
+                                )
+                        }
+                    } else {
+                        ContentUnavailableView(
+                            "Select an item",
+                            systemImage: "folder"
+                        )
+                    }
+                }
             }
-        }
-        .toolbar {
-            Text("sdjksdsdjk")
-            Spacer()
-            Button("readme") {
-                selection = nil
+            .toolbar {
+                if readme != nil {
+                    Button("readme", systemImage: "book", action: { selection = nil })
+                }
             }
-        }
-        .onAppear(perform: { items = Vault(folder: passRootDir).loadDirectory() })
-
-        statusBar()
-
-        VStack(spacing: 0) {
-            // VSplit(
-            //     top: {
-            // Readme(folder: passRootDir)
-            //             .frame(idealHeight: 200)
-            //     },
-            //     bottom: {
-            // Entries(folder: passRootDir, gpg: try? gpg.get().0)
-            // .frame(idealHeight: 600)
-            //     }
-            // )
-            // .padding()
+            .onAppear(perform: { items = Vault(folder: passRootDir).loadDirectory() })
+            statusBar()
         }
     }
 
     @ViewBuilder private func statusBar() -> some View {
-        HStack(spacing: 8) {
+        HStack {
             switch gpg {
                 case .success(let gpg):
                     Text(URL(fileURLWithPath: gpg.0.execPath).lastPathComponent)
@@ -175,5 +170,24 @@ private struct ContentsView: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
         .background(Color.indigo.opacity(0.3))
+    }
+
+    @ViewBuilder private func readmeView(fileURL: URL, content: String) -> some View {
+        ZStack(alignment: .topTrailing) {
+            ScrollView {
+                Text(LocalizedStringKey(content))
+                    .textSelection(.enabled)
+            }
+            Label(fileURL.lastPathComponent, systemImage: "book")
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color.blue.opacity(0.2))
+                )
+                .tooltip(fileURL.path)
+        }
     }
 }
