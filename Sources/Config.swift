@@ -3,7 +3,15 @@ import Foundation
 struct Config: Decodable {
     let passRoot: String?
     let gpg: GpgConfig?
+    let showReadme: Bool?
     let readme: String?
+
+    init() {
+        passRoot = nil
+        gpg = GpgConfig(execName: nil, execPath: nil)
+        showReadme = nil
+        readme = nil
+    }
 
     struct GpgConfig: Decodable {
         let execName: String?
@@ -32,7 +40,7 @@ struct Config: Decodable {
             return config
         } catch {
             print(">", error)
-            return Config(passRoot: nil, gpg: GpgConfig(execName: nil, execPath: nil), readme: nil)
+            return Config()
         }
     }
 }
