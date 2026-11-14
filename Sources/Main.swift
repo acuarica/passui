@@ -53,7 +53,7 @@ private struct ContentsView: View {
 
     @State private var folders: [VaultFolder] = []
     @State private var selectedFolder: VaultFolder?
-    @State private var selection: VaultItem?
+    @State private var selectedItem: VaultItem?
     @State private var searchText: String = ""
 
     var body: some View {
@@ -75,7 +75,7 @@ private struct ContentsView: View {
                 .listStyle(.sidebar)
             } content: {
                 if let items = selectedFolder?.items {
-                    List(selection: $selection) {
+                    List(selection: $selectedItem) {
                         if items.isEmpty {
                             ContentUnavailableView(
                                 "No items",
@@ -84,17 +84,21 @@ private struct ContentsView: View {
                             )
                         } else {
                             ForEach(items, id: \.self) { item in
-                                VaultItemView(item: item)
-                                    .tag(item)
+                                if searchText.isEmpty
+                                    || item.label.localizedCaseInsensitiveContains(searchText)
+                                {
+                                    VaultItemView(item: item)
+                                        .tag(item)
+                                }
                             }
                         }
                     }
                     .searchable(text: $searchText, prompt: "Search vault items...")
                 }
             } detail: {
-                if let selection {
+                if let selectedItem {
                     if case let .success(gpg) = gpg {
-                        DetailView(url: selection.url, gpg: gpg.0)
+                        DetailView(url: selectedItem.url, gpg: gpg.0)
                     } else {
                         ContentUnavailableView(
                             "Couldn't decrypt vault item",
@@ -118,7 +122,7 @@ private struct ContentsView: View {
                 Divider()
                 Button("refresh", systemImage: "arrow.clockwise", action: refresh)
                 if readme != nil {
-                    Button("readme", systemImage: "book", action: { selection = nil })
+                    Button("readme", systemImage: "book", action: { selectedItem = nil })
                 }
             }
             .onAppear(perform: refresh)
