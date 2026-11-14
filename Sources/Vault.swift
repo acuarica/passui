@@ -67,6 +67,8 @@ struct VaultItem: Identifiable, Hashable {
         url.deletingPathExtension().deletingPathExtension().lastPathComponent
             .replacingOccurrences(of: "_", with: " ")
             .replacingOccurrences(of: "-", with: " ")
-            .capitalized
+            .components(separatedBy: .whitespaces)
+            .map { $0.lowercased() == $0 && $0.count > 1 ? $0.capitalized : $0 }
+            .joined(separator: " ")
     }
 }

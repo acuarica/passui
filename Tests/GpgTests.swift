@@ -2,8 +2,8 @@ import XCTest
 
 @testable import passui
 
-final class ttTests: XCTestCase {
-    func testExample() throws {
+final class GpgTests: XCTestCase {
+    func testVersion() throws {
         // XCTest Documentation
         // https://developer.apple.com/documentation/xctest
 
