@@ -38,7 +38,18 @@ struct Vault {
     //     }
     // }
 
-    func load() -> [VaultFolder] {
+    func load() -> [VaultFolder]? {
+        var isDirectory: ObjCBool = false
+        guard FileManager.default.fileExists(atPath: folder.path, isDirectory: &isDirectory) else {
+            return nil
+            // throw EnumerationError.directoryNotFound(resolvedURL)
+        }
+
+        guard isDirectory.boolValue else {
+            return nil
+            // throw EnumerationError.notADirectory(resolvedURL)
+        }
+
         let resourceKeys: [URLResourceKey] = [
             .isDirectoryKey, .creationDateKey, .contentModificationDateKey,
         ]
@@ -61,7 +72,11 @@ struct Vault {
                 let key = url.deletingLastPathComponent()
                 assert(tree[key] != nil, "Directory does not exist for file")
                 tree[key]!.append(
-                    VaultItem(url, values.creationDate, values.contentModificationDate))
+                    VaultItem(
+                        url: url,
+                        createdAt: values.creationDate,
+                        modifiedAt: values.contentModificationDate
+                    ))
             }
         }
         return tree.map { VaultFolder(url: $0, items: $1) }
@@ -81,12 +96,6 @@ struct VaultItem: Identifiable, Hashable {
     let url: URL
     let createdAt: Date?
     let modifiedAt: Date?
-
-    init(_ url: URL, _ createdAt: Date?, _ modifiedAt: Date?) {
-        self.url = url
-        self.createdAt = createdAt
-        self.modifiedAt = modifiedAt
-    }
 
     var label: String {
         url.deletingPathExtension().deletingPathExtension().lastPathComponent
