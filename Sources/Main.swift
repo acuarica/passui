@@ -25,8 +25,8 @@ private struct ContentsView: View {
             }
         print("Pass root folder", passRootDir)
 
-        dirs = Vault(folder: passRootDir).load()
-        self.selectedCategory = dirs[0]
+        folders = Vault(folder: passRootDir).load()!
+        self.selectedFolder = folders[0]
 
         do {
             let gpg = Gpg(
@@ -54,10 +54,9 @@ private struct ContentsView: View {
         }
     }
 
-    private let dirs: [VaultFolder]
+    private let folders: [VaultFolder]
 
-    @State private var selectedCategory: VaultFolder?
-
+    @State private var selectedFolder: VaultFolder?
     @State private var items: Result<[VaultItem], any Error>?
     @State private var searchText: String = ""
     @State private var selection: VaultItem? = nil
@@ -65,18 +64,16 @@ private struct ContentsView: View {
     var body: some View {
         VStack(spacing: 2) {
             NavigationSplitView {
-
-                List(selection: $selectedCategory) {
-                    ForEach(dirs, id: \.self) { category in
-                        Text(category.url.lastPathComponent)
+                List(selection: $selectedFolder) {
+                    Section("Folders") {
+                        ForEach(folders, id: \.self) { category in
+                            // Text(category.url.lastPathComponent)
+                            Label(category.url.lastPathComponent, systemImage: "folder")
+                        }
                     }
                 }
+                .listStyle(.sidebar)
                 .navigationTitle("Sidebar title")
-
-                // ForEach(items, id: \.self) { item in
-                // VaultItemView(item: item)
-                // .tag(item)
-
             } content: {
                 if let items {
                     switch items {
@@ -103,15 +100,14 @@ private struct ContentsView: View {
                             Text("\(error)")
                     }
                 } else {
-                    Text("more err")
-
-                    if let items = selectedCategory?.items {
+                    if let items = selectedFolder?.items {
                         List(selection: $selection) {
                             ForEach(items, id: \.self) { item in
                                 VaultItemView(item: item)
                                     .tag(item)
                             }
                         }
+                        .searchable(text: $searchText, prompt: "Search vault items...")
                     }
 
                 }
@@ -126,7 +122,7 @@ private struct ContentsView: View {
                     if let readme {
                         switch readme.1 {
                             case .success(let content):
-                                readmeView(fileURL: readme.0, content: content)
+                                Readme(readmeURL: readme.0, content: content)
                                     .padding()
                             case .failure(let error):
                                 ContentUnavailableView(
@@ -150,53 +146,11 @@ private struct ContentsView: View {
                 }
             }
             .onAppear(perform: loadItems)
-            statusBar()
+            StatusBar(gpg: gpg)
         }
     }
 
     private func loadItems() {
         // items = Vault(folder: passRootDir).loadDirectory()
-    }
-
-    @ViewBuilder private func statusBar() -> some View {
-        HStack {
-            switch gpg {
-                case .success(let gpg):
-                    Text(URL(fileURLWithPath: gpg.0.execPath).lastPathComponent)
-                        .tooltip(gpg.0.execPath)
-                    Spacer()
-                    switch gpg.1 {
-                        case .success(let version):
-                            Text(version.number).tooltip(version.info)
-                        case .failure(let error):
-                            Text("gpg version: \(error)").foregroundStyle(.orange)
-                    }
-                case .failure(let error):
-                    Text("gpg: \(error)").foregroundStyle(.orange)
-            }
-        }
-        .foregroundStyle(.primary)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
-        .background(Color.indigo.opacity(0.3))
-    }
-
-    @ViewBuilder private func readmeView(fileURL: URL, content: String) -> some View {
-        ZStack(alignment: .topTrailing) {
-            ScrollView {
-                Text(LocalizedStringKey(content))
-                    .textSelection(.enabled)
-            }
-            Label(fileURL.lastPathComponent, systemImage: "book")
-                .font(.caption2.weight(.semibold))
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(Color.blue.opacity(0.2))
-                )
-                .tooltip(fileURL.path)
-        }
     }
 }
