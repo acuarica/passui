@@ -98,18 +98,17 @@ struct Entries: View {
                 ],
                 options: .skipsHiddenFiles
             )
-            .filter { url in url.pathExtension == "gpg" || url.pathExtension == "asc" }
             .map { url in
                 let values = try url.resourceValues(forKeys: [
                     .isDirectoryKey, .creationDateKey, .contentModificationDateKey,
                 ])
                 return VaultItem(
                     url: url,
-                    isDirectory: values.isDirectory ?? false,
                     createdAt: values.creationDate,
                     modifiedAt: values.contentModificationDate
                 )
             }
+            .filter { $0.url.pathExtension == "gpg" || $0.url.pathExtension == "asc" }
             .sorted {
                 $0.url.lastPathComponent.localizedStandardCompare($1.url.lastPathComponent)
                     == .orderedAscending
@@ -122,12 +121,12 @@ struct Entries: View {
     }
 }
 
-private struct VaultItemView: View {
+struct VaultItemView: View {
     let item: VaultItem
 
     var body: some View {
         HStack(alignment: .top) {
-            Image(systemName: item.isDirectory ? "folder" : "lock.doc")
+            Image(systemName: "lock.doc")
                 .resizable()
                 .scaledToFit()
                 .frame(width: 24, height: 24)
@@ -136,12 +135,14 @@ private struct VaultItemView: View {
                 HStack {
                     Text(item.label)
                         .font(.system(size: 14))
+
                     Text(".\(item.url.pathExtension)")
                         .padding(4)
                         .background(
                             RoundedRectangle(cornerRadius: 4)
                                 .fill(Color.cyan.opacity(0.3))
                         )
+
                 }
                 Text("Created: \(VaultItemView.formatDate(item.createdAt))")
                     .foregroundStyle(.secondary)
@@ -149,11 +150,6 @@ private struct VaultItemView: View {
                     .foregroundStyle(.secondary)
             }
             .font(.caption)
-            Spacer()
-            Image(systemName: "chevron.right")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .padding(.top, 20)
         }
         .padding(8)
     }
@@ -163,23 +159,7 @@ private struct VaultItemView: View {
     }
 }
 
-private struct VaultItem: Identifiable {
-    var id: String { url.path }
-
-    let url: URL
-    let isDirectory: Bool
-    let createdAt: Date?
-    let modifiedAt: Date?
-
-    var label: String {
-        url.deletingPathExtension().deletingPathExtension().lastPathComponent
-            .replacingOccurrences(of: "_", with: " ")
-            .replacingOccurrences(of: "-", with: " ")
-            .capitalized
-    }
-}
-
-private struct DetailView: View {
+struct DetailView: View {
     let url: URL
     let gpg: Gpg
 
@@ -206,15 +186,12 @@ private struct DetailView: View {
             Spacer()
             Text("")
         }
-        .onAppear(perform: loadGpgInfo)
+        .padding()
+        .onAppear(perform: loadGpgInfoAndDecrypt)
     }
 
-    private func loadGpgInfo() {
-        do {
-            info = try gpg.info(url.path)
-            detail = try gpg.decrypt(url.path)
-        } catch {
-            // info = nil
-        }
+    private func loadGpgInfoAndDecrypt() {
+        info = try? gpg.info(url.path)
+        detail = try? gpg.decrypt(url.path)
     }
 }
