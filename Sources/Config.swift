@@ -6,13 +6,6 @@ struct Config: Decodable {
     let showReadme: Bool?
     let readme: String?
 
-    init() {
-        passRoot = nil
-        gpg = GpgConfig(execName: nil, execPath: nil)
-        showReadme = nil
-        readme = nil
-    }
-
     struct GpgConfig: Decodable {
         let execName: String?
         let execPath: String?
@@ -40,7 +33,12 @@ struct Config: Decodable {
             return config
         } catch {
             print(">", error)
-            return Config()
+            return Config(
+                passRoot: nil,
+                gpg: GpgConfig(execName: nil, execPath: nil),
+                showReadme: nil,
+                readme: nil
+            )
         }
     }
 }

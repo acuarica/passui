@@ -116,18 +116,18 @@ private struct ContentsView: View {
             .toolbar {
                 Text(passRootDir.path)
                 Divider()
-                Button("refresh", systemImage: "arrow.clockwise", action: loadVault)
+                Button("refresh", systemImage: "arrow.clockwise", action: refresh)
                 if readme != nil {
                     Button("readme", systemImage: "book", action: { selection = nil })
                 }
             }
-            .onAppear(perform: loadVault)
+            .onAppear(perform: refresh)
             StatusBar(gpg: gpg)
         }
     }
 
-    private func loadVault() {
-        folders = Vault(folder: passRootDir).load()!
-        self.selectedFolder = folders[0]
+    private func refresh() {
+        folders = loadVault(folder: passRootDir)!
+        selectedFolder = folders[0]
     }
 }
