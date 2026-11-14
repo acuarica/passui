@@ -66,56 +66,37 @@ private struct ContentsView: View {
             NavigationSplitView {
                 List(selection: $selectedFolder) {
                     Section("Folders") {
-                        ForEach(folders, id: \.self) { category in
-                            Label(category.url.lastPathComponent, systemImage: "folder")
+                        ForEach(folders, id: \.self) { folder in
+                            HStack {
+                                Label(folder.url.lastPathComponent, systemImage: "folder")
+                                Spacer()
+                                Text("\(folder.items.count)")
+                            }
                         }
                     }
                 }
                 .listStyle(.sidebar)
                 .navigationTitle("Sidebar title")
             } content: {
-                if let items {
-                    switch items {
-                        case .success(let items):
-                            List(selection: $selection) {
-                                ForEach(items, id: \.self) { item in
-                                    VaultItemView(item: item)
-                                        .tag(item)
-                                }
-                            }
-                            .navigationDestination(for: VaultItem.self) { url in
-                                if case let .success(gpg) = gpg {
-                                    DetailView(url: url.url, gpg: gpg.0)
-                                } else {
-                                    ContentUnavailableView(
-                                        "Couldn't decrypt vault item",
-                                        systemImage: "exclamationmark.triangle",
-                                        description: Text("GPG not available")
-                                    )
-                                }
-                            }
-                            .searchable(text: $searchText, prompt: "Search vault items...")
-                        case .failure(let error):
-                            Text("\(error)")
-                    }
-                } else {
-                    if let items = selectedFolder?.items {
-                        List(selection: $selection) {
-                            ForEach(items, id: \.self) { item in
-                                VaultItemView(item: item)
-                                    .tag(item)
-                            }
+                if let items = selectedFolder?.items {
+                    List(selection: $selection) {
+                        ForEach(items, id: \.self) { item in
+                            VaultItemView(item: item)
+                                .tag(item)
                         }
-                        .searchable(text: $searchText, prompt: "Search vault items...")
                     }
-
+                    .searchable(text: $searchText, prompt: "Search vault items...")
                 }
             } detail: {
                 if let selection {
                     if case let .success(gpg) = gpg {
                         DetailView(url: selection.url, gpg: gpg.0)
                     } else {
-                        Text("err gpg")
+                        ContentUnavailableView(
+                            "Couldn't decrypt vault item",
+                            systemImage: "exclamationmark.triangle",
+                            description: Text("GPG not available").foregroundStyle(.orange)
+                        )
                     }
                 } else {
                     if let readme {
@@ -123,7 +104,7 @@ private struct ContentsView: View {
                     } else {
                         ContentUnavailableView(
                             "Select an item",
-                            systemImage: "folder"
+                            systemImage: "lock.doc"
                         )
                     }
                 }
