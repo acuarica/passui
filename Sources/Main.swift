@@ -67,7 +67,6 @@ private struct ContentsView: View {
                 List(selection: $selectedFolder) {
                     Section("Folders") {
                         ForEach(folders, id: \.self) { category in
-                            // Text(category.url.lastPathComponent)
                             Label(category.url.lastPathComponent, systemImage: "folder")
                         }
                     }
@@ -120,17 +119,7 @@ private struct ContentsView: View {
                     }
                 } else {
                     if let readme {
-                        switch readme.1 {
-                            case .success(let content):
-                                Readme(readmeURL: readme.0, content: content)
-                                    .padding()
-                            case .failure(let error):
-                                ContentUnavailableView(
-                                    "Couldn't load \(readme.0.lastPathComponent)",
-                                    systemImage: "exclamationmark.triangle",
-                                    description: Text("\(error)")
-                                )
-                        }
+                        Readme(readmeURL: readme.0, content: readme.1)
                     } else {
                         ContentUnavailableView(
                             "Select an item",
