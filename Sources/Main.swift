@@ -70,19 +70,28 @@ private struct ContentsView: View {
                             HStack {
                                 Label(folder.url.lastPathComponent, systemImage: "folder")
                                 Spacer()
-                                Text("\(folder.items.count)")
+                                Text("\(folder.items.count) items")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
                             }
                         }
                     }
                 }
                 .listStyle(.sidebar)
-                .navigationTitle("Sidebar title")
             } content: {
                 if let items = selectedFolder?.items {
                     List(selection: $selection) {
-                        ForEach(items, id: \.self) { item in
-                            VaultItemView(item: item)
-                                .tag(item)
+                        if items.isEmpty {
+                            ContentUnavailableView(
+                                "No items",
+                                systemImage: "folder",
+                                description: Text("This folder is empty.")
+                            )
+                        } else {
+                            ForEach(items, id: \.self) { item in
+                                VaultItemView(item: item)
+                                    .tag(item)
+                            }
                         }
                     }
                     .searchable(text: $searchText, prompt: "Search vault items...")
@@ -110,6 +119,8 @@ private struct ContentsView: View {
                 }
             }
             .toolbar {
+                Text(passRootDir.path)
+                Divider()
                 Button("refresh", systemImage: "arrow.clockwise", action: loadItems)
                 if readme != nil {
                     Button("readme", systemImage: "book", action: { selection = nil })
