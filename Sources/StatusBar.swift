@@ -17,7 +17,8 @@ struct StatusBar: View {
                             Text("gpg version: \(error)").foregroundStyle(.orange)
                     }
                 case .failure(let error):
-                    Text("gpg: \(error)").foregroundStyle(.orange)
+                    Text("gpg program not found: \(error)").foregroundStyle(.orange)
+                    Spacer()
             }
         }
         .foregroundStyle(.primary)
