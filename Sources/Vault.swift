@@ -79,7 +79,10 @@ struct Vault {
                     ))
             }
         }
-        return tree.map { VaultFolder(url: $0, items: $1) }
+        return
+            tree
+            .map { VaultFolder(url: $0, items: $1) }
+            .sorted { $0.url.path.compare($1.url.path) == .orderedAscending }
     }
 }
 

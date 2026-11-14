@@ -25,9 +25,6 @@ private struct ContentsView: View {
             }
         print("Pass root folder", passRootDir)
 
-        folders = Vault(folder: passRootDir).load()!
-        self.selectedFolder = folders[0]
-
         do {
             let gpg = Gpg(
                 execPath: try config.gpg?.execPath
@@ -54,12 +51,10 @@ private struct ContentsView: View {
         }
     }
 
-    private let folders: [VaultFolder]
-
+    @State private var folders: [VaultFolder] = []
     @State private var selectedFolder: VaultFolder?
-    @State private var items: Result<[VaultItem], any Error>?
+    @State private var selection: VaultItem?
     @State private var searchText: String = ""
-    @State private var selection: VaultItem? = nil
 
     var body: some View {
         VStack(spacing: 2) {
@@ -121,17 +116,18 @@ private struct ContentsView: View {
             .toolbar {
                 Text(passRootDir.path)
                 Divider()
-                Button("refresh", systemImage: "arrow.clockwise", action: loadItems)
+                Button("refresh", systemImage: "arrow.clockwise", action: loadVault)
                 if readme != nil {
                     Button("readme", systemImage: "book", action: { selection = nil })
                 }
             }
-            .onAppear(perform: loadItems)
+            .onAppear(perform: loadVault)
             StatusBar(gpg: gpg)
         }
     }
 
-    private func loadItems() {
-        // items = Vault(folder: passRootDir).loadDirectory()
+    private func loadVault() {
+        folders = Vault(folder: passRootDir).load()!
+        self.selectedFolder = folders[0]
     }
 }
