@@ -73,6 +73,7 @@ private struct ContentsView: View {
                     }
                 }
                 .listStyle(.sidebar)
+                .onChange(of: selectedFolder) { searchText = "" }
             } content: {
                 if let items = selectedFolder?.items {
                     List(selection: $selectedItem) {
