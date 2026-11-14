@@ -45,7 +45,14 @@ func loadVault(folder: URL) -> [VaultFolder]? {
     }
     return
         tree
-        .map { VaultFolder(url: $0, items: $1) }
+        .map {
+            VaultFolder(
+                url: $0,
+                items: $1.sorted {
+                    $0.url.lastPathComponent.compare($1.url.lastPathComponent) == .orderedAscending
+                }
+            )
+        }
         .sorted { $0.url.path.compare($1.url.path) == .orderedAscending }
 }
 
