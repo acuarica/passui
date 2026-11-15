@@ -3,6 +3,9 @@
 OK="\xE2\x9C\x94"
 ERR="\xE2\xA8\xAF"
 
+# Format Swift files staged for commit.
+#
+# https://git-scm.com/docs/git-diff#Documentation/git-diff.txt---diff-filterACDMRTUXB
 for file in $(git diff --cached --name-only --diff-filter=ACMR | grep '\.swift$'); do
   if swift format --in-place $file; then
     echo "\033[2;32m$OK [OK] $file: successfully formatted\033[0m"
@@ -13,8 +16,10 @@ for file in $(git diff --cached --name-only --diff-filter=ACMR | grep '\.swift$'
   fi
 done
 
-# Exit with an error when there are no longer any staged changes,
-# since otherwise git will create an empty commit.
+# Exit with an error when there are no longer any staged changes.
+# Otherwise git will create an empty commit.
+#
+# This happens when formatting was the only change in staged files.
 #
 # https://yuri.is/writing/formatting-code-with-a-git-hook/
 if git diff --cached --quiet; then
