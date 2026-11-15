@@ -28,9 +28,7 @@ func loadVault(folder: URL) throws -> [VaultFolder] {
 
     var tree: [URL: [VaultItem]] = [folder: []]
     for case let url as URL in ls {
-        guard let values = try? url.resourceValues(forKeys: Set(resourceKeys)) else {
-            continue
-        }
+        let values = try url.resourceValues(forKeys: Set(resourceKeys))
 
         if let isDirectory = values.isDirectory, isDirectory {
             assert(tree[url] == nil, "Directory already exists")
