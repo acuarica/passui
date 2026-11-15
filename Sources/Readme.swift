@@ -28,7 +28,8 @@ struct Readme: View {
                 ContentUnavailableView(
                     "Couldn't load README",
                     systemImage: "exclamationmark.triangle",
-                    description: Text(error.localizedDescription).foregroundStyle(.orange)
+                    description: Text(error.localizedDescription)
+                        .foregroundStyle(.orange)
                 )
         }
     }
