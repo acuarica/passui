@@ -1,17 +1,20 @@
 import Foundation
 
-func loadVault(folder: URL) -> [VaultFolder]? {
+private enum ListingError: Error {
+    case folderNotFound(folder: URL)
+    case notADirectory(folder: URL)
+}
+
+func loadVault(folder: URL) throws -> [VaultFolder] {
     print("Loading vault items from", folder)
 
     var isDirectory: ObjCBool = false
     guard FileManager.default.fileExists(atPath: folder.path, isDirectory: &isDirectory) else {
-        return nil
-        // throw EnumerationError.directoryNotFound(resolvedURL)
+        throw ListingError.folderNotFound(folder: folder)
     }
 
     guard isDirectory.boolValue else {
-        return nil
-        // throw EnumerationError.notADirectory(resolvedURL)
+        throw ListingError.notADirectory(folder: folder)
     }
 
     let resourceKeys: [URLResourceKey] = [
