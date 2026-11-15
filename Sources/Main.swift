@@ -88,7 +88,7 @@ private struct ContentsView: View {
                                 if searchText.isEmpty
                                     || item.label.localizedCaseInsensitiveContains(searchText)
                                 {
-                                    VaultItemView(item: item)
+                                    VaultItemRow(item: item)
                                         .tag(item)
                                 }
                             }

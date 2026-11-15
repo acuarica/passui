@@ -65,7 +65,7 @@ struct Entries: View {
                             || item.label.localizedCaseInsensitiveContains(searchText)
                         {
                             NavigationLink(value: item.url) {
-                                VaultItemView(item: item)
+                                VaultItemRow(item: item)
                             }
                         }
                     }
@@ -121,7 +121,7 @@ struct Entries: View {
     }
 }
 
-struct VaultItemView: View {
+struct VaultItemRow: View {
     let item: VaultItem
 
     var body: some View {
@@ -144,9 +144,9 @@ struct VaultItemView: View {
                         )
 
                 }
-                Text("Created: \(VaultItemView.formatDate(item.createdAt))")
+                Text("Created: \(Self.formatDate(item.createdAt))")
                     .foregroundStyle(.secondary)
-                Text("Last Modified: \(VaultItemView.formatDate(item.modifiedAt))")
+                Text("Last Modified: \(Self.formatDate(item.modifiedAt))")
                     .foregroundStyle(.secondary)
             }
             .font(.caption)
