@@ -51,88 +51,116 @@ private struct ContentsView: View {
         }
     }
 
-    @State private var folders: [VaultFolder] = []
+    @State private var folders: Result<[VaultFolder], any Error>?
     @State private var selectedFolder: VaultFolder?
     @State private var selectedItem: VaultItem?
-    @State private var searchText: String = ""
+    @State private var searchText = ""
 
     var body: some View {
         VStack(spacing: 2) {
-            NavigationSplitView {
-                List(selection: $selectedFolder) {
-                    Section("Folders") {
-                        ForEach(folders, id: \.self) { folder in
-                            HStack {
-                                Label(folder.url.lastPathComponent, systemImage: "folder")
-                                Spacer()
-                                Text("\(folder.items.count) items")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                    }
-                }
-                .listStyle(.sidebar)
-                .onChange(of: selectedFolder) { searchText = "" }
-            } content: {
-                if let items = selectedFolder?.items {
-                    List(selection: $selectedItem) {
-                        if items.isEmpty {
-                            ContentUnavailableView(
-                                "No items",
-                                systemImage: "folder",
-                                description: Text("This folder is empty.")
-                            )
-                        } else {
-                            ForEach(items, id: \.self) { item in
-                                if searchText.isEmpty
-                                    || item.label.localizedCaseInsensitiveContains(searchText)
-                                {
-                                    VaultItemRow(item: item)
-                                        .tag(item)
-                                }
-                            }
-                        }
-                    }
-                    .searchable(text: $searchText, prompt: "Search vault items...")
-                }
-            } detail: {
-                if let selectedItem {
-                    if case let .success(gpg) = gpg {
-                        DetailView(url: selectedItem.url, gpg: gpg.0)
-                    } else {
+            if let folders {
+                switch folders {
+                    case .success(let folders):
+                        foldersView(folders)
+                    case .failure(let error):
+                        Spacer()
                         ContentUnavailableView(
-                            "Couldn't decrypt vault item",
+                            "Couldn't load directory",
                             systemImage: "exclamationmark.triangle",
-                            description: Text("GPG not available").foregroundStyle(.orange)
+                            description: Text("\(error)")
                         )
-                    }
-                } else {
-                    if let readme {
-                        Readme(readmeURL: readme.0, content: readme.1)
-                    } else {
-                        ContentUnavailableView(
-                            "Select an item",
-                            systemImage: "lock.doc"
-                        )
-                    }
+                        Spacer()
                 }
             }
-            .toolbar {
-                Text(passRootDir.path)
-                Divider()
-                Button("refresh", systemImage: "arrow.clockwise", action: refresh)
-                if readme != nil {
-                    Button("readme", systemImage: "book", action: { selectedItem = nil })
-                }
-            }
-            .onAppear(perform: refresh)
             StatusBar(gpg: gpg)
         }
+        .toolbar {
+            Text(passRootDir.path)
+            Divider()
+            Button("refresh", systemImage: "arrow.clockwise", action: refresh)
+            if readme != nil {
+                Button("readme", systemImage: "book", action: { selectedItem = nil })
+            }
+        }
+        .onAppear(perform: refresh)
     }
 
     private func refresh() {
-        folders = loadVault(folder: passRootDir)!
-        selectedFolder = folders[0]
+        do {
+            let folders = try loadVault(folder: passRootDir)
+            self.folders = .success(folders)
+            self.selectedFolder = folders[0]
+        } catch {
+            self.folders = .failure(error)
+        }
+    }
+
+    private func foldersView(_ folders: [VaultFolder]) -> some View {
+        NavigationSplitView {
+            List(selection: $selectedFolder) {
+                Section("Folders") {
+                    ForEach(folders, id: \.self) { folder in
+                        HStack {
+                            Label(folder.url.lastPathComponent, systemImage: "folder")
+                            Spacer()
+                            Text("\(folder.items.count) items")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            }
+            .listStyle(.sidebar)
+            .onChange(of: selectedFolder) { searchText = "" }
+        } content: {
+            if let items = selectedFolder?.items {
+                List(selection: $selectedItem) {
+                    if items.isEmpty {
+                        ContentUnavailableView(
+                            "No items",
+                            systemImage: "folder",
+                            description: Text("This folder is empty.")
+                        )
+                    } else {
+                        ForEach(items, id: \.self) { item in
+                            if searchText.isEmpty
+                                || item.label.localizedCaseInsensitiveContains(searchText)
+                            {
+                                VaultItemRow(item: item)
+                                    .tag(item)
+                            }
+                        }
+                    }
+                }
+                .searchable(text: $searchText, prompt: "Search vault items...")
+                // .overlay {
+                //     if searchText.isEmpty {
+                //         ContentUnavailableView.search
+                //     }
+                // }
+
+            }
+        } detail: {
+            if let selectedItem {
+                if case let .success(gpg) = gpg {
+                    DetailView(url: selectedItem.url, gpg: gpg.0)
+                } else {
+                    ContentUnavailableView(
+                        "Couldn't decrypt vault item",
+                        systemImage: "exclamationmark.triangle",
+                        description: Text("GPG not available").foregroundStyle(.orange)
+                    )
+                }
+            } else {
+                if let readme {
+                    Readme(readmeURL: readme.0, content: readme.1)
+                } else {
+                    ContentUnavailableView(
+                        "Select an item",
+                        systemImage: "lock.doc"
+                    )
+                }
+            }
+        }
     }
 }
