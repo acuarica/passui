@@ -68,6 +68,7 @@ private struct ContentsView: View {
                             "Couldn't load directory",
                             systemImage: "exclamationmark.triangle",
                             description: Text("\(error)")
+                                .foregroundStyle(.orange)
                         )
                         Spacer()
                 }
@@ -115,35 +116,30 @@ private struct ContentsView: View {
         } content: {
             if let items = selectedFolder?.items {
                 List(selection: $selectedItem) {
-                    if items.isEmpty {
-                        ContentUnavailableView(
-                            "No items",
-                            systemImage: "folder",
-                            description: Text("This folder is empty.")
-                        )
-                    } else {
-                        ForEach(items, id: \.self) { item in
-                            if searchText.isEmpty
-                                || item.label.localizedCaseInsensitiveContains(searchText)
-                            {
-                                VaultItemRow(item: item)
-                                    .tag(item)
-                            }
+                    ForEach(items, id: \.self) { item in
+                        if searchText.isEmpty
+                            || item.label.localizedCaseInsensitiveContains(searchText)
+                        {
+                            VaultItemRow(item: item)
+                                .tag(item)
                         }
                     }
                 }
                 .searchable(text: $searchText, prompt: "Search vault items...")
-                // .overlay {
-                //     if searchText.isEmpty {
-                //         ContentUnavailableView.search
-                //     }
-                // }
-
+                .overlay {
+                    if items.isEmpty {
+                        ContentUnavailableView(
+                            "No Items",
+                            systemImage: "folder",
+                            description: Text("This folder is empty.")
+                        )
+                    }
+                }
             }
         } detail: {
             if let selectedItem {
                 if case let .success(gpg) = gpg {
-                    DetailView(url: selectedItem.url, gpg: gpg.0)
+                    VaultItemDetail(url: selectedItem.url, gpg: gpg.0)
                 } else {
                     ContentUnavailableView(
                         "Couldn't decrypt vault item",
@@ -154,7 +150,7 @@ private struct ContentsView: View {
             } else {
                 if let readme {
                     Readme(readmeURL: readme.0, content: readme.1)
-                } else {
+                } else if let items = selectedFolder?.items, !items.isEmpty {
                     ContentUnavailableView(
                         "Select an item",
                         systemImage: "lock.doc"

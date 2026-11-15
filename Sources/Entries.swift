@@ -1,126 +1,5 @@
 import SwiftUI
 
-struct Entries: View {
-    let folder: URL
-    let gpg: Gpg?
-
-    @State private var items: [VaultItem] = []
-    @State private var errorMessage: String?
-
-    // FIX: WARNING: Application performed a reentrant operation in its NSTableView delegate. This warning will become an assert in the future.
-    @State private var searchText: String = ""
-
-    var body: some View {
-        VStack {
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Vault \(folder.lastPathComponent)")
-                        .font(.headline)
-                        .tooltip(folder.path)
-                    Text("\(items.count) items")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                Spacer()
-                Image(systemName: "magnifyingglass").resizable().aspectRatio(contentMode: .fill)
-                    .frame(width: 12, height: 12)
-                    .padding(.leading, 5)
-                    .opacity(0.8)
-                TextField("Search vault items...", text: $searchText)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(width: 200)
-                Button(action: { searchText = "" }) {
-                    Image(systemName: "xmark.circle.fill")
-                }
-                .padding(.trailing, 8)
-                .disabled(searchText == "")
-                .buttonStyle(.borderless)
-                Divider()
-                    .frame(height: 14)
-                    .padding(.leading, 8)
-                    .padding(.trailing, 8)
-
-                Button(action: loadDirectory) {
-                    Image(systemName: "arrow.clockwise")
-                }
-                .tooltip("Reload Vault Items")
-            }
-
-            if let errorMessage {
-                ContentUnavailableView(
-                    "Couldn't load directory",
-                    systemImage: "exclamationmark.triangle",
-                    description: Text(errorMessage)
-                )
-            } else if items.isEmpty {
-                ContentUnavailableView(
-                    "No items",
-                    systemImage: "folder",
-                    description: Text("This directory is empty.")
-                )
-            } else {
-                NavigationStack {
-                    List(items) { item in
-                        if searchText.isEmpty
-                            || item.label.localizedCaseInsensitiveContains(searchText)
-                        {
-                            NavigationLink(value: item.url) {
-                                VaultItemRow(item: item)
-                            }
-                        }
-                    }
-                    .listStyle(.bordered)
-                    .navigationDestination(for: URL.self) { url in
-                        if let gpg {
-                            DetailView(url: url, gpg: gpg)
-                        } else {
-                            ContentUnavailableView(
-                                "Couldn't decrypt vault item",
-                                systemImage: "exclamationmark.triangle",
-                                description: Text("GPG not available")
-                            )
-                        }
-                    }
-                    .navigationTitle("Vault Items")
-                }
-            }
-        }
-        .onAppear(perform: loadDirectory)
-    }
-
-    private func loadDirectory() {
-        print("Loading vault items from", folder, "...")
-        do {
-            items = try FileManager.default.contentsOfDirectory(
-                at: folder,
-                includingPropertiesForKeys: [
-                    .isDirectoryKey, .creationDateKey, .contentModificationDateKey,
-                ],
-                options: .skipsHiddenFiles
-            )
-            .map { url in
-                let values = try url.resourceValues(forKeys: [
-                    .isDirectoryKey, .creationDateKey, .contentModificationDateKey,
-                ])
-                return VaultItem(
-                    url: url,
-                    createdAt: values.creationDate,
-                    modifiedAt: values.contentModificationDate
-                )
-            }
-            .filter { $0.url.pathExtension == "gpg" || $0.url.pathExtension == "asc" }
-            .sorted {
-                $0.url.lastPathComponent.localizedStandardCompare($1.url.lastPathComponent)
-                    == .orderedAscending
-            }
-            errorMessage = nil
-        } catch {
-            items = []
-            errorMessage = error.localizedDescription
-        }
-    }
-}
-
 struct VaultItemRow: View {
     let item: VaultItem
 
@@ -159,7 +38,7 @@ struct VaultItemRow: View {
     }
 }
 
-struct DetailView: View {
+struct VaultItemDetail: View {
     let url: URL
     let gpg: Gpg
 
