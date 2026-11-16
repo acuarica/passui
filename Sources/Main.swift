@@ -88,7 +88,7 @@ private struct ContentsView: View {
 
     private func refresh() {
         do {
-            let folders = try loadVault(folder: passRootDir)
+            let folders = try loadVault(from: passRootDir)
             self.folders = .success(folders)
             self.selectedFolder = folders[0]
         } catch {
@@ -98,21 +98,36 @@ private struct ContentsView: View {
 
     private func foldersView(_ folders: [VaultFolder]) -> some View {
         NavigationSplitView {
+
             List(selection: $selectedFolder) {
                 Section("Folders") {
-                    ForEach(folders, id: \.self) { folder in
-                        HStack {
-                            Label(folder.url.lastPathComponent, systemImage: "folder")
-                            Spacer()
-                            Text("\(folder.items.count) items")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
+
+                    TreeView(folders, children: \.children) { folder in
+                        Label(folder.label, systemImage: "folder")
+                            .badge(folder.items.count)
+                            .tag(folder)
                     }
+
                 }
             }
             .listStyle(.sidebar)
             .onChange(of: selectedFolder) { searchText = "" }
+
+            // List(selection: $selectedFolder) {
+            //     Section("Folders") {
+            //         ForEach(folders, id: \.self) { folder in
+            //             HStack {
+            //                 Label(folder.url.lastPathComponent, systemImage: "folder")
+            //                 Spacer()
+            //                 Text("\(folder.items.count) items")
+            //                     .font(.caption)
+            //                     .foregroundStyle(.secondary)
+            //             }
+            //         }
+            //     }
+            // }
+            // .listStyle(.sidebar)
+            // .onChange(of: selectedFolder) { searchText = "" }
         } content: {
             if let items = selectedFolder?.items {
                 List(selection: $selectedItem) {
