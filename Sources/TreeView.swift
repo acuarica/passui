@@ -1,27 +1,27 @@
 import SwiftUI
 
-struct TreeView<Data: RandomAccessCollection, ID: Hashable, Content: View>: View
-where ID == Data.Element.ID, Data.Element: Identifiable {
-    let data: Data
-    let keyPath: KeyPath<Data.Element, Data?>
-    @ViewBuilder let content: (Data.Element) -> Content
+struct TreeView<Data: RandomAccessCollection, Content: View>: View
+where Data.Element: Identifiable {
+    private let data: Data
+    private let field: KeyPath<Data.Element, Data?>
+    private let content: (Data.Element) -> Content
 
-    @State var isExpanded: Bool = true
+    @State private var isExpanded: Bool = true
 
-    init<DataElement>(
+    init(
         _ data: Data, children: KeyPath<Data.Element, Data?>,
-        @ViewBuilder content: @escaping (DataElement) -> Content
-    ) where DataElement: Identifiable, DataElement == Data.Element {
+        content: @escaping (Data.Element) -> Content
+    ) {
         self.data = data
-        self.keyPath = children
+        self.field = children
         self.content = content
     }
 
     var body: some View {
         ForEach(data) { elem in
-            if let c = elem[keyPath: keyPath] {
+            if let childrenData = elem[keyPath: field] {
                 DisclosureGroup(isExpanded: $isExpanded) {
-                    TreeView(c, children: keyPath, content: content)
+                    TreeView(childrenData, children: field, content: content)
                 } label: {
                     content(elem)
                 }
