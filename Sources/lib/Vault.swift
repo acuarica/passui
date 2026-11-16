@@ -33,7 +33,7 @@ extension Array where Element == VaultFolderNode {
     }
 }
 
-func loadVault(from folder: URL) throws -> [VaultFolder] {
+func loadVault(from folder: URL) throws -> VaultFolder {
     print("Loading vault items from", folder)
 
     var isDirectory: ObjCBool = false
@@ -54,8 +54,8 @@ func loadVault(from folder: URL) throws -> [VaultFolder] {
         options: .skipsHiddenFiles
     )!
 
-    let root = [VaultFolderNode(folder)]
-    var dict: [URL: VaultFolderNode] = [folder: root[0]]
+    let root = VaultFolderNode(folder)
+    var dict: [URL: VaultFolderNode] = [folder: root]
 
     for case let url as URL in ls {
         let values = try url.resourceValues(forKeys: Set(resourceKeys))
@@ -79,7 +79,7 @@ func loadVault(from folder: URL) throws -> [VaultFolder] {
         }
     }
 
-    return root.map() ?? []
+    return root.map()
 }
 
 struct VaultFolder: Identifiable, Hashable {
