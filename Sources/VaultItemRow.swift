@@ -14,14 +14,12 @@ struct VaultItemRow: View {
                 HStack {
                     Text(item.label)
                         .font(.system(size: 14))
-
                     Text(".\(item.url.pathExtension)")
                         .padding(4)
                         .background(
                             RoundedRectangle(cornerRadius: 4)
                                 .fill(Color.cyan.opacity(0.3))
                         )
-
                 }
                 Text("Created: \(Self.formatDate(item.createdAt))")
                     .foregroundStyle(.secondary)
