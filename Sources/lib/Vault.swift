@@ -18,9 +18,7 @@ private class VaultFolderNode {
         VaultFolder(
             url: url,
             children: children.map(),
-            items: items.sorted {
-                $0.url.lastPathComponent.compare($1.url.lastPathComponent) == .orderedAscending
-            }
+            items: items.sorted(using: KeyPathComparator(\.url.lastPathComponent, order: .forward))
         )
     }
 }
@@ -29,7 +27,8 @@ extension Array where Element == VaultFolderNode {
     fileprivate func map() -> [VaultFolder]? {
         isEmpty
             ? nil
-            : map { $0.map() }.sorted { $0.url.path.compare($1.url.path) == .orderedAscending }
+            : map { $0.map() }.sorted(
+                using: KeyPathComparator(\.url.lastPathComponent, order: .forward))
     }
 }
 
