@@ -1,11 +1,11 @@
 import SwiftUI
 
 /// https://blog.rampatra.com/adding-tooltips-to-swiftui-views-on-macos
-private struct Tooltip<TTContent: View>: ViewModifier {
+private struct Tooltip<TooltipContent: View>: ViewModifier {
     @State private var isHovering = false
-    let tooltipContent: TTContent
+    let tooltipContent: TooltipContent
 
-    init(@ViewBuilder content: () -> TTContent) {
+    init(@ViewBuilder content: () -> TooltipContent) {
         self.tooltipContent = content()
     }
 
@@ -25,10 +25,6 @@ private struct Tooltip<TTContent: View>: ViewModifier {
 }
 
 extension View {
-    // func tooltip<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
-    //     self.modifier(Tooltip(content: content))
-    // }
-
     func tooltip(_ content: String) -> some View {
         self.modifier(Tooltip(content: { Text(content) }))
     }
