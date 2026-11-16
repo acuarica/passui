@@ -139,12 +139,13 @@ private struct ContentsView: View {
         } detail: {
             if let selectedItem {
                 if case let .success(gpg) = gpg {
-                    VaultItemDetail(url: selectedItem.url, gpg: gpg.0)
+                    VaultItemDetail(item: selectedItem, gpg: gpg.0)
                 } else {
                     ContentUnavailableView(
                         "Couldn't decrypt vault item",
                         systemImage: "exclamationmark.triangle",
-                        description: Text("GPG not available").foregroundStyle(.orange)
+                        description: Text("GPG not available")
+                            .foregroundStyle(.orange)
                     )
                 }
             } else {

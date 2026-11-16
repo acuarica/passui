@@ -1,50 +1,60 @@
 import SwiftUI
 
 struct VaultItemDetail: View {
-    let url: URL
+    let item: VaultItem
     let gpg: Gpg
 
     @State private var info: String?
     @State private var detail: String?
 
+    @State private var msg = ""
+
     var body: some View {
         VStack {
-            Text(url.lastPathComponent)
+            Text(item.url.lastPathComponent)
             Divider()
+            Text(msg)
             TabView {
-                Group {
-
+                VStack {
                     if let info {
                         Text(info)
                             .textSelection(.enabled)
                     } else {
                         Text("error could not load gpg info")
                     }
-                    Divider()
+                    // Divider()
                 }.tabItem {
                     Label("Info", systemImage: "info.circle")
                 }
-                Group {
-
+                VStack {
                     if let detail {
                         Text(detail)
                             .textSelection(.enabled)
                     } else {
                         Text("error could not load gpg detail")
                     }
-                    Spacer()
-                    Text("")
+                    // Spacer()
+                    // Text("")
                 }.tabItem {
-                    Label("Details", systemImage: "doc.text")
+                    Label("Details", systemImage: "book")
                 }
             }
+            // .tabViewStyle()
+
         }
         .padding()
+        .task(id: item) {
+            msg = item.url.lastPathComponent + "asdfasdf"
+            info = try? gpg.info(item.url.path)
+            // await fetchDetails(for: item)
+            detail = nil
+            detail = try? gpg.decrypt(item.url.path)
+        }
         .onAppear(perform: loadGpgInfoAndDecrypt)
     }
 
     private func loadGpgInfoAndDecrypt() {
-        info = try? gpg.info(url.path)
-        detail = try? gpg.decrypt(url.path)
+        // info = try? gpg.info(url.path)
+        // detail = try? gpg.decrypt(url.path)
     }
 }
