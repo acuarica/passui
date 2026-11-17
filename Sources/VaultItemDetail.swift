@@ -20,9 +20,9 @@ struct VaultItemDetail: View {
         }
         .padding(20)
         .task(id: item) {
-            info = try? gpg.info(item.url.path)
             content = nil
             content = try? gpg.decrypt(item.url.path)
+            info = try? gpg.info(item.url.path)
         }
     }
 
@@ -69,7 +69,7 @@ struct VaultItemDetail: View {
                 Text("error could not load gpg detail")
             }
         } label: {
-            Label("", systemImage: "lock.open")
+            Label("Content", systemImage: "lock.open")
         }
     }
 
@@ -79,7 +79,6 @@ struct VaultItemDetail: View {
                 if let info {
                     Text(info)
                         .textSelection(.enabled)
-                        .font(.caption)
                 } else {
                     Text("error could not load gpg info")
                 }
