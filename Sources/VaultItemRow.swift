@@ -21,9 +21,9 @@ struct VaultItemRow: View {
                                 .fill(Color.cyan.opacity(0.3))
                         )
                 }
-                Text("Created: \(Self.formatDate(item.createdAt))")
+                Text("Created: \(formatDate(item.createdAt))")
                     .foregroundStyle(.secondary)
-                Text("Last Modified: \(Self.formatDate(item.modifiedAt))")
+                Text("Last Modified: \(formatDate(item.modifiedAt))")
                     .foregroundStyle(.secondary)
             }
             .font(.caption)
@@ -31,7 +31,4 @@ struct VaultItemRow: View {
         .padding(8)
     }
 
-    private static func formatDate(_ date: Date?) -> String {
-        return date?.formatted(date: .abbreviated, time: .shortened) ?? "Unavailable"
-    }
 }

@@ -109,3 +109,7 @@ struct VaultItem: Identifiable, Hashable {
             .joined(separator: " ")
     }
 }
+
+func formatDate(_ date: Date?) -> String {
+    return date?.formatted(date: .abbreviated, time: .shortened) ?? "Unavailable"
+}
