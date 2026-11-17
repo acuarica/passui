@@ -44,8 +44,7 @@ struct VaultItemDetail: View {
         GroupBox {
             if let content {
                 HStack {
-                    Text(content)
-                        .textSelection(.enabled)
+                    SecureText(text: content)
                     Spacer()
                 }
                 Button {
@@ -105,6 +104,23 @@ struct VaultItemDetail: View {
             }
         } label: {
             Label("File Info", systemImage: "doc.circle")
+        }
+    }
+}
+
+struct SecureText: View {
+    let text: String
+    @State private var isRevealed = false
+
+    var body: some View {
+        Text(isRevealed ? text : "••••••••••••••••")
+            .font(.system(.body, design: .monospaced))
+            .textSelection(.enabled)
+        Button {
+            isRevealed.toggle()
+        } label: {
+            Image(systemName: isRevealed ? "eye.slash" : "eye")
+                .accentColor(.gray)
         }
     }
 }
