@@ -8,22 +8,15 @@ struct VaultItemDetail: View {
     @State private var content: String?
 
     @State private var isCopied = false
-    @State private var isExpanded: Bool = false
-
-    // DisclosureGroup(isExpanded: $isExpanded) {
-    // } label: {
-    // Text("asdfasdfasdfasd").foregroundStyle(.secondary)
-    // }
 
     var body: some View {
-        // HStack(alignment: .top) {
         VStack(alignment: .leading, spacing: 22) {
             headerView()
             Divider()
             contentView()
             infoView()
+            Spacer()
         }
-        // }
         .padding(20)
         .task(id: item) {
             info = try? gpg.info(item.url.path)
@@ -66,15 +59,12 @@ struct VaultItemDetail: View {
 
     private func contentView() -> some View {
         GroupBox {
-
             if let content {
                 HStack {
-
                     Text(content)
                         .textSelection(.enabled)
                     Spacer()
                 }
-
                 Button {
                     secureCopy(text: content)
                     withAnimation {
@@ -85,7 +75,6 @@ struct VaultItemDetail: View {
                             isCopied = false
                         }
                     }
-
                 } label: {
                     Label(
                         isCopied ? "Copied (Clears in 30s)" : "Copy Secret",
@@ -94,7 +83,6 @@ struct VaultItemDetail: View {
                     .padding(3)
                 }
                 .buttonStyle(.borderedProminent)
-
             } else {
                 Text("error could not load gpg detail")
             }
