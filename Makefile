@@ -1,4 +1,5 @@
 APP=PassUI.app
+DMG=PassUI.dmg
 BUILD=release
 
 app:
@@ -7,8 +8,11 @@ app:
 	cp -f $$(swift build --configuration $(BUILD) --show-bin-path)/passui "$(APP)/Contents/MacOS"
 	cp -f Info.plist "$(APP)/Contents"
 
+dmg: app
+	hdiutil create -verbose -volname "Pass UI" -srcfolder $(APP) -ov -format UDZO $(DMG)
+
 clean:
-	-rm -rv $(APP)
+	-rm -rv $(APP) $(DMG)
 
 hooks:
 	git config core.hooksPath .hooks
